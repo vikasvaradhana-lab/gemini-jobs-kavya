@@ -1,0 +1,54 @@
+name: Daily Job Board Update
+
+on:
+  schedule:
+    # Run every day at 8 AM UTC (adjust timezone as needed)
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install axios cheerio playwright
+          npx playwright install --with-deps chromium
+
+      - name: Run job scraper
+        id: scraper
+        run: node scraper.js
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "GitHub Action Scraper"
+          git config --global user.email "actions@github.com"
+          git add jobs-db.json jobs-db.js source-state.json
+          git commit -m "Update live jobs database [skip ci]" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify on success
+        if: success()
+        run: echo "✅ Job board updated successfully at $(date)"
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "❌ Job board update failed - check logs"
