@@ -2,9 +2,8 @@ name: Daily Job Board Update
 
 on:
   schedule:
-    # Run every day at 8 AM UTC (adjust timezone as needed)
     - cron: '0 8 * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -34,6 +33,7 @@ jobs:
         run: node scraper.js
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
 
       - name: Commit and Push changes
         run: |
