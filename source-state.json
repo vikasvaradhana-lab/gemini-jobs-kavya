@@ -1,0 +1,22 @@
+{
+  "sources": {
+    "germany": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-05T09:25:05.246Z",
+      "contentHash": "706fbd4c0c4d80cc4cc998216efc4755"
+    },
+    "dutch": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-05T09:25:05.246Z",
+      "contentHash": "72b12a2d7a96bb2e624845ecb6a039f9"
+    },
+    "swedish": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-05T09:25:05.246Z",
+      "contentHash": "32274b8896202387edfdcf1712d46561"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "kavya-job-board-api",
+  "version": "1.0.0",
+  "description": "Auto-updating job board API for Kavya",
+  "main": "api-server.js",
+  "scripts": {
+    "start": "node api-server.js",
+    "dev": "node api-server.js"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "axios": "^1.16.1",
+    "cheerio": "^1.2.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "playwright": "^1.60.0"
+  },
+  "keywords": [
+    "job-board",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT"
+}

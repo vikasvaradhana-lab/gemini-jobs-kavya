@@ -1,0 +1,67 @@
+{
+  "attemptedAt": "2026-06-05T04:35:50.256Z",
+  "debugModeActive": false,
+  "rejections": {
+    "lowScore": 0,
+    "disciplineExclude": 0,
+    "postdocExclude": 0,
+    "seniorExclude": 0,
+    "hardExclude": 0,
+    "deduplicated": 0,
+    "skippedCooldown": 2,
+    "malformedData": 0
+  },
+  "categories": {
+    "phd": 0,
+    "postdoc": 0,
+    "researchAssistantOrTech": 0,
+    "industryScientist": 0,
+    "genericBiology": 0
+  },
+  "multilingualMatches": 0,
+  "nicheHits": 0,
+  "glpHits": 0,
+  "sources": {
+    "swedish": {
+      "raw": 0,
+      "cleaned": 0,
+      "scored": 0,
+      "excluded": 0,
+      "retained": 499,
+      "status": "healthy",
+      "method": "varbi rss + playwright",
+      "targetUrl": "https://uu.varbi.com/en/",
+      "tier": 1,
+      "diagStatus": "COOLDOWN-SKIPPED"
+    },
+    "dutch": {
+      "raw": 0,
+      "cleaned": 0,
+      "scored": 0,
+      "excluded": 0,
+      "retained": 11,
+      "status": "healthy",
+      "method": "cheerio html",
+      "targetUrl": "https://www.academictransfer.com/en/",
+      "tier": 1,
+      "diagStatus": "COOLDOWN-SKIPPED"
+    }
+  },
+  "dedupExamples": [],
+  "completedAt": "2026-06-05T04:35:50.336Z",
+  "finalRetainedJobsCount": 510,
+  "sourceStateLog": {
+    "swedish": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-05T04:35:18.770Z",
+      "contentHash": "60ceb7a9423f330a7b0cc516ae20581c"
+    },
+    "dutch": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-05T04:35:18.770Z",
+      "contentHash": "72b12a2d7a96bb2e624845ecb6a039f9"
+    }
+  }
+}
