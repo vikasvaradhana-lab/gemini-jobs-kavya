@@ -929,7 +929,7 @@ async function refineWithGemini(jobs) {
   const refinedJobs = [];
 
   const rulesSorted = [...jobs].sort((a, b) => (b.score || 0) - (a.score || 0));
-  const toRefine = rulesSorted.slice(0, 25);
+  const toRefine = rulesSorted.slice(0, 5);
   const remaining = rulesSorted.slice(25);
 
   for (let i = 0; i < toRefine.length; i++) {
