@@ -993,8 +993,19 @@ async function refineWithGemini(jobs) {
   const toRefine = rulesSorted.slice(0, 25);
   const remaining = rulesSorted.slice(25);
 
+  let consecutiveFailures = 0;
+
   for (let i = 0; i < toRefine.length; i++) {
     const job = toRefine[i];
+
+    if (consecutiveFailures >= 3) {
+      if (i === 3 || DEBUG_MODE) {
+        console.log(`  ⚠ Disabling Gemini AI curation for the remaining ${toRefine.length - i} candidates due to consecutive API errors (quota/rate limit exhausted).`);
+      }
+      refinedJobs.push(job);
+      continue;
+    }
+
     const prompt = `You are a career matching AI for Kavya, a researcher with a unique profile:
 - Core strengths: developmental epigenomics, DNA methylation, pyrosequencing, hESC/mESC culture, dorsal forebrain differentiation, SH-SY5Y and Caco-2 models, immunofluorescence, molecular toxicology, endocrine disruptors, neurodegeneration disease modeling.
 - Experience: 3 years QA/QC industry experience, GLP compliance, documentation standards, teaching/mentoring.
@@ -1029,12 +1040,14 @@ Return a JSON object with these exact keys:
           metrics.rejections.lowScore++;
           if (DEBUG_MODE) console.log(`   [AI Exclude] ${job.title.substring(0, 45)}... (Reason: Failed match criteria)`);
         }
+        consecutiveFailures = 0; // reset on success
       } else {
         throw new Error("Empty response");
       }
     } catch (e) {
       console.warn(`   ⚠ Gemini call failed for "${job.title.substring(0, 30)}": ${e.message}. Falling back to rule-based score.`);
-      refinedJobs.push(job); 
+      refinedJobs.push(job);
+      consecutiveFailures++; // increment on failure
     }
     await new Promise(r => setTimeout(r, 4000));
   }
