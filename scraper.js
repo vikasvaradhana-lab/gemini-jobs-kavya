@@ -958,6 +958,26 @@ function deduplicateJobsTiered(jobsArr) {
 }
 
 // ─── OPTIONAL GEMINI AI CURATION LAYER ─────────────────────────────────────────
+async function callGeminiWithRetry(url, payload, maxRetries = 3) {
+  let attempt = 0;
+  let delay = 3000;
+  while (attempt < maxRetries) {
+    try {
+      return await axios.post(url, payload, { timeout: 10000 });
+    } catch (err) {
+      attempt++;
+      const isRateLimit = err.response && err.response.status === 429;
+      const isServerErr = err.response && err.response.status === 503;
+      if (attempt >= maxRetries || (!isRateLimit && !isServerErr)) {
+        throw err;
+      }
+      console.warn(`   ⚠ Gemini rate limit/server error (Attempt ${attempt}/${maxRetries}). Retrying in ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+      delay *= 2;
+    }
+  }
+}
+
 async function refineWithGemini(jobs) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -992,10 +1012,10 @@ Return a JSON object with these exact keys:
 
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const res = await axios.post(url, {
+      const res = await callGeminiWithRetry(url, {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: 'application/json' }
-      }, { timeout: 8000 });
+      });
 
       if (res.data && res.data.candidates && res.data.candidates[0].content.parts[0].text) {
         const result = JSON.parse(res.data.candidates[0].content.parts[0].text.trim());
@@ -1016,7 +1036,7 @@ Return a JSON object with these exact keys:
       console.warn(`   ⚠ Gemini call failed for "${job.title.substring(0, 30)}": ${e.message}. Falling back to rule-based score.`);
       refinedJobs.push(job); 
     }
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 4000));
   }
   return [...refinedJobs, ...remaining];
 }
