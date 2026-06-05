@@ -954,7 +954,7 @@ Return a JSON object with these exact keys:
       const res = await axios.post(url, {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: 'application/json' }
-      }, { timeout: 8000 });
+      }, { timeout: 30000 });
 
       if (res.data && res.data.candidates && res.data.candidates[0].content.parts[0].text) {
         const result = JSON.parse(res.data.candidates[0].content.parts[0].text.trim());
@@ -975,7 +975,7 @@ Return a JSON object with these exact keys:
       console.warn(`   ⚠ Gemini call failed for "${job.title.substring(0, 30)}": ${e.message}. Falling back to rule-based score.`);
       refinedJobs.push(job); 
     }
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 3000));
   }
   return [...refinedJobs, ...remaining];
 }
