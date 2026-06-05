@@ -930,7 +930,7 @@ async function refineWithGemini(jobs) {
 
   const rulesSorted = [...jobs].sort((a, b) => (b.score || 0) - (a.score || 0));
   const toRefine = rulesSorted.slice(0, 5);
-  const remaining = rulesSorted.slice(25);
+  const remaining = rulesSorted.slice(5);
 
   for (let i = 0; i < toRefine.length; i++) {
     const job = toRefine[i];
@@ -949,33 +949,71 @@ Return a JSON object with these exact keys:
 - "why": string (max 140 characters, explaining the personal fit reasoning, e.g. "Fits your experience with Caco-2 models and molecular toxicology.")
 - "suggestedTier": string ("high" | "medium" | "stretch")`;
 
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const res = await axios.post(url, {
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json' }
-      }, { timeout: 30000 });
+    let attempts = 0;
+    const maxAttempts = 3;
+    let delay = 3000; // Start with 3s delay
+    let success = false;
 
-      if (res.data && res.data.candidates && res.data.candidates[0].content.parts[0].text) {
-        const result = JSON.parse(res.data.candidates[0].content.parts[0].text.trim());
-        if (result.isMatch) {
-          job.score = Math.max(0, Math.min(Math.round(result.refinedScore), 100));
-          job.why = String(result.why).substring(0, 150);
-          job.tier = result.suggestedTier || tierFromScore(job.score);
-          refinedJobs.push(job);
-          if (DEBUG_MODE) console.log(`   [AI Match] ${job.title.substring(0, 45)}... Score: ${job.score} (Why: ${job.why})`);
+    while (attempts < maxAttempts && !success) {
+      try {
+        attempts++;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const res = await axios.post(url, {
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json' }
+        }, { timeout: 30000 });
+
+        if (res.data && res.data.candidates && res.data.candidates[0].content.parts[0].text) {
+          const rawText = res.data.candidates[0].content.parts[0].text.trim();
+          let result;
+          try {
+            result = JSON.parse(rawText);
+          } catch (jsonErr) {
+            // Fallback: Check if response has markdown wrapper ```json ... ```
+            const match = rawText.match(/```json\s*([\s\S]*?)\s*```/);
+            if (match) {
+              result = JSON.parse(match[1].trim());
+            } else {
+              throw jsonErr;
+            }
+          }
+
+          if (result.isMatch) {
+            job.score = Math.max(0, Math.min(Math.round(result.refinedScore), 100));
+            job.why = String(result.why).substring(0, 150);
+            job.tier = result.suggestedTier || tierFromScore(job.score);
+            refinedJobs.push(job);
+            if (DEBUG_MODE) console.log(`   [AI Match] ${job.title.substring(0, 45)}... Score: ${job.score} (Why: ${job.why})`);
+          } else {
+            metrics.rejections.lowScore++;
+            if (DEBUG_MODE) console.log(`   [AI Exclude] ${job.title.substring(0, 45)}... (Reason: Failed match criteria)`);
+          }
+          success = true;
         } else {
-          metrics.rejections.lowScore++;
-          if (DEBUG_MODE) console.log(`   [AI Exclude] ${job.title.substring(0, 45)}... (Reason: Failed match criteria)`);
+          throw new Error("Empty response");
         }
-      } else {
-        throw new Error("Empty response");
+      } catch (e) {
+        const status = e.response ? e.response.status : null;
+        const isRateLimit = status === 429;
+        const isServerError = status === 503;
+        const isTimeout = e.code === 'ECONNABORTED' || e.message.includes('timeout');
+
+        if (attempts < maxAttempts && (isRateLimit || isServerError || isTimeout)) {
+          console.warn(`   ⚠️ Gemini call attempt ${attempts} failed for "${job.title.substring(0, 25)}" (${status || e.message}). Retrying in ${delay}ms...`);
+          await new Promise(r => setTimeout(r, delay));
+          delay *= 2; // Exponential backoff
+        } else {
+          // Fall back to rule-based score
+          console.warn(`   ⚠ Gemini call failed for "${job.title.substring(0, 25)}" after ${attempts} attempts: ${e.message}. Falling back to rule-based score.`);
+          refinedJobs.push(job);
+          success = true; // Exit loop
+        }
       }
-    } catch (e) {
-      console.warn(`   ⚠ Gemini call failed for "${job.title.substring(0, 30)}": ${e.message}. Falling back to rule-based score.`);
-      refinedJobs.push(job); 
     }
-    await new Promise(r => setTimeout(r, 3000));
+    // Add a small spacer delay between successive job queries to respect rate limits
+    if (i < toRefine.length - 1) {
+      await new Promise(r => setTimeout(r, 2000));
+    }
   }
   return [...refinedJobs, ...remaining];
 }
@@ -2275,14 +2313,37 @@ async function runScraperPipeline() {
     return j;
   });
 
+  // Dataset Protection Mechanism
+  let previousJobCount = 0;
+  if (fs.existsSync(DB_FILE)) {
+    try {
+      const prevDb = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+      if (prevDb && Array.isArray(prevDb.jobs)) {
+        previousJobCount = prevDb.jobs.length;
+      }
+    } catch (err) {
+      console.warn(`⚠️ Failed to parse previous database for count comparison: ${err.message}`);
+    }
+  }
+
+  const FORCE_UPDATE = process.env.FORCE_UPDATE === 'true' || process.argv.includes('--force');
+  const countThreshold = Math.round(previousJobCount * 0.5);
+
+  if (previousJobCount > 0 && finalJobs.length < countThreshold && !FORCE_UPDATE && !DEBUG_MODE) {
+    console.error(`❌ DATASET PROTECTION TRIGGERED: New job count (${finalJobs.length}) is significantly lower than previous count (${previousJobCount}) (threshold: < 50%, minimum allowed: ${countThreshold}). Overwrite aborted to protect production dashboard.`);
+    process.exit(1); // Exit with error to notify GitHub Actions
+  }
+
   const jobsDbContent = {
     lastUpdated: now.toISOString(),
     sourceHealth: healthReport,
     jobs: finalJobs
   };
 
-  fs.writeFileSync(DB_FILE, JSON.stringify(jobsDbContent, null, 2));
-  fs.writeFileSync(JS_FILE, `window.KAVYA_JOBS_DB = ${JSON.stringify(jobsDbContent, null, 2)};`);
+  // Ensure jobs-db.json and jobs-db.js are perfectly synchronized
+  const dbJsonString = JSON.stringify(jobsDbContent, null, 2);
+  fs.writeFileSync(DB_FILE, dbJsonString);
+  fs.writeFileSync(JS_FILE, `window.KAVYA_JOBS_DB = ${dbJsonString};`);
   saveSourceState(sourceState);
 
   // Compile and Save Diagnostics Telemetry Report
