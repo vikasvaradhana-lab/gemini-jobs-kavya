@@ -3,20 +3,26 @@
     "germany": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-05T09:25:05.246Z",
-      "contentHash": "706fbd4c0c4d80cc4cc998216efc4755"
+      "lastSuccess": "2026-06-05T15:47:00.719Z",
+      "contentHash": "70734df61d98b3cb3efe7c414f533506"
     },
     "dutch": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-05T09:25:05.246Z",
-      "contentHash": "72b12a2d7a96bb2e624845ecb6a039f9"
+      "lastSuccess": "2026-06-05T15:47:00.719Z",
+      "contentHash": "732279aafbc0dd7d3d14888c1e79f744"
+    },
+    "danish": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-05T15:47:00.719Z",
+      "contentHash": "bbb8b41b00c06a23a73a00026737ee19"
     },
     "swedish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-05T09:25:05.246Z",
-      "contentHash": "32274b8896202387edfdcf1712d46561"
+      "lastSuccess": "2026-06-05T15:47:00.719Z",
+      "contentHash": "e9f4f7ba695de336895024dd095deaf9"
     }
   }
 }

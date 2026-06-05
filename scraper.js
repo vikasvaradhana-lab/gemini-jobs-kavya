@@ -8,6 +8,8 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const https = require('https');
+
 
 // ─── DEBUG MODE CONFIGURATION ────────────────────────────────────────────────
 const DEBUG_MODE = process.argv.includes('--debug') || process.env.SCRAPER_DEBUG === 'true';
@@ -321,7 +323,12 @@ const DISCIPLINE_EXCLUDES = [
   'electrochemical', 'catalyst ink', 'water-driven materials', 'high-entropy-alloy',
   'nuclear structural', 'ion-irradiated', 'hpc/gpu computing', 'gpu computing',
   'bubble dynamics', 'water electrolysis', 'hydrogen production', 'water treatment',
-  'test and reliability', 'gs-imtr'
+  'test and reliability', 'gs-imtr',
+  // Veterinary / Animal husbandry exclusions
+  'veterinary', 'veterinär', 'djursjukskötare', 'animal facility', 'animal keeper',
+  // Humanities / Non-Bio / Cognitive / computational exclusions
+  'psychology', 'psychiatry', 'law', 'legal', 'cognitive', 'computational neuroscience',
+  'generative ai', 'artificial intelligence', 'machine learning'
 ];
 
 const POSTDOC_EXCLUDES = [
@@ -340,14 +347,18 @@ const SENIOR_EXCLUDES = [
   'gruppenleiter', 'abteilungsleiter', 'hoogleraar', 'professori',
   'apulaisprofessori', 'maître de conférences', 'group leader', 'department head',
   'principal investigator', 'chair in', 'senior scientist', 'senior researcher',
-  'senior project manager', 'head of', 'director', 'team lead', 'principal scientist'
+  'senior project manager', 'head of', 'director', 'team lead', 'principal scientist',
+  // Management exclusions
+  'group manager', 'project manager', 'business manager', 'operations manager'
 ];
 
 const HARD_EXCLUDES = [
   'software engineer', 'software developer', 'devops engineer', 'it engineer',
   'nursing', 'nurse practitioner', 'full professor', 'associate professor',
   'assistant professor', 'business development manager', 'sales representative',
-  'account manager', 'hr manager', 'finance manager'
+  'account manager', 'hr manager', 'finance manager',
+  // Non-research / Business development / Part-time student jobs
+  'business development', 'student assistant', 'studenterassistent', 'studentmedhjælper', 'studenterformidler'
 ];
 
 function checkExclusionReason(title, description = '') {
@@ -608,6 +619,19 @@ function scoreJobMultiDimensional(title, description, sourceName) {
     { kw: 'toxisch', w: 20, multi: true },
     { kw: 'toxizität', w: 20, multi: true },
     { kw: 'myrkyllisyys', w: 20, multi: true },
+    // Specific Toxicants & EDCs from Master's Thesis
+    { kw: 'bisphenol', w: 35 },
+    { kw: 'bpa', w: 30 },
+    { kw: 'bpf', w: 30 },
+    { kw: ' endocrine-disrupting', w: 40 },
+    { kw: ' edc ', w: 25 },
+
+    // Circadian Biology / Rhythms
+    { kw: 'circadian biology', w: 35 },
+    { kw: 'circadian rhythm', w: 35 },
+    { kw: 'circadian clock', w: 30 },
+    { kw: 'chronobiology', w: 30 },
+    { kw: 'circadian', w: 20 },
 
     // Stem-Cell Differentiation / Culture
     { kw: 'stem cell differentiation', w: 40 },
@@ -642,6 +666,8 @@ function scoreJobMultiDimensional(title, description, sourceName) {
     { kw: 'sh-sy5y', w: 35 },
     { kw: 'caco-2', w: 35 },
     { kw: 'caco2', w: 35 },
+    { kw: 'glutamatergic', w: 35 },
+    { kw: 'neural induction', w: 30 },
     
     // Industry Curation Boosting
     { kw: 'assay development', w: 25 },
@@ -668,6 +694,11 @@ function scoreJobMultiDimensional(title, description, sourceName) {
     { kw: 'cancer', w: 30 },
     { kw: 'tumor', w: 25 },
     { kw: 'tumour', w: 25 },
+    // MicroRNA & Chemoresistance from M.Sc. Ovarian Cancer research
+    { kw: 'microrna', w: 30 },
+    { kw: 'mirna', w: 30 },
+    { kw: 'chemoresistance', w: 30 },
+    { kw: 'cisplatin', w: 25 },
     
     // Multilingual Immunology & Oncology
     { kw: 'immunologie', w: 35, multi: true },
@@ -677,7 +708,11 @@ function scoreJobMultiDimensional(title, description, sourceName) {
     { kw: 'onkologi', w: 35, multi: true },
     { kw: 'tumorbiologie', w: 30, multi: true },
     { kw: 'krebs', w: 30, multi: true },
-    { kw: 'kanker', w: 30, multi: true }
+    { kw: 'kanker', w: 30, multi: true },
+
+    // Model Organisms (Zebrafish / Drosophila)
+    { kw: 'zebrafish', w: 15 },
+    { kw: 'drosophila', w: 15 }
   ];
 
   for (const { kw, w, multi } of nicheKeywords) {
@@ -705,6 +740,12 @@ function scoreJobMultiDimensional(title, description, sourceName) {
     { kw: 'flow cytometry', w: 8 },
     { kw: 'elisa', w: 8 },
     { kw: 'western blot', w: 7 },
+    // New methods from resume
+    { kw: 'in situ hybridisation', w: 20 },
+    { kw: 'in situ hybridization', w: 20 },
+    { kw: 'live-cell imaging', w: 15 },
+    { kw: 'rna extraction', w: 10 },
+    { kw: 'dna extraction', w: 10 },
     
     // Multilingual methods
     { kw: 'cellodling', w: 10, multi: true },
@@ -929,8 +970,8 @@ async function refineWithGemini(jobs) {
   const refinedJobs = [];
 
   const rulesSorted = [...jobs].sort((a, b) => (b.score || 0) - (a.score || 0));
-  const toRefine = rulesSorted.slice(0, 5);
-  const remaining = rulesSorted.slice(5);
+  const toRefine = rulesSorted.slice(0, 25);
+  const remaining = rulesSorted.slice(25);
 
   for (let i = 0; i < toRefine.length; i++) {
     const job = toRefine[i];
@@ -949,71 +990,33 @@ Return a JSON object with these exact keys:
 - "why": string (max 140 characters, explaining the personal fit reasoning, e.g. "Fits your experience with Caco-2 models and molecular toxicology.")
 - "suggestedTier": string ("high" | "medium" | "stretch")`;
 
-    let attempts = 0;
-    const maxAttempts = 3;
-    let delay = 3000; // Start with 3s delay
-    let success = false;
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const res = await axios.post(url, {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' }
+      }, { timeout: 8000 });
 
-    while (attempts < maxAttempts && !success) {
-      try {
-        attempts++;
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        const res = await axios.post(url, {
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: 'application/json' }
-        }, { timeout: 30000 });
-
-        if (res.data && res.data.candidates && res.data.candidates[0].content.parts[0].text) {
-          const rawText = res.data.candidates[0].content.parts[0].text.trim();
-          let result;
-          try {
-            result = JSON.parse(rawText);
-          } catch (jsonErr) {
-            // Fallback: Check if response has markdown wrapper ```json ... ```
-            const match = rawText.match(/```json\s*([\s\S]*?)\s*```/);
-            if (match) {
-              result = JSON.parse(match[1].trim());
-            } else {
-              throw jsonErr;
-            }
-          }
-
-          if (result.isMatch) {
-            job.score = Math.max(0, Math.min(Math.round(result.refinedScore), 100));
-            job.why = String(result.why).substring(0, 150);
-            job.tier = result.suggestedTier || tierFromScore(job.score);
-            refinedJobs.push(job);
-            if (DEBUG_MODE) console.log(`   [AI Match] ${job.title.substring(0, 45)}... Score: ${job.score} (Why: ${job.why})`);
-          } else {
-            metrics.rejections.lowScore++;
-            if (DEBUG_MODE) console.log(`   [AI Exclude] ${job.title.substring(0, 45)}... (Reason: Failed match criteria)`);
-          }
-          success = true;
-        } else {
-          throw new Error("Empty response");
-        }
-      } catch (e) {
-        const status = e.response ? e.response.status : null;
-        const isRateLimit = status === 429;
-        const isServerError = status === 503;
-        const isTimeout = e.code === 'ECONNABORTED' || e.message.includes('timeout');
-
-        if (attempts < maxAttempts && (isRateLimit || isServerError || isTimeout)) {
-          console.warn(`   ⚠️ Gemini call attempt ${attempts} failed for "${job.title.substring(0, 25)}" (${status || e.message}). Retrying in ${delay}ms...`);
-          await new Promise(r => setTimeout(r, delay));
-          delay *= 2; // Exponential backoff
-        } else {
-          // Fall back to rule-based score
-          console.warn(`   ⚠ Gemini call failed for "${job.title.substring(0, 25)}" after ${attempts} attempts: ${e.message}. Falling back to rule-based score.`);
+      if (res.data && res.data.candidates && res.data.candidates[0].content.parts[0].text) {
+        const result = JSON.parse(res.data.candidates[0].content.parts[0].text.trim());
+        if (result.isMatch) {
+          job.score = Math.max(0, Math.min(Math.round(result.refinedScore), 100));
+          job.why = String(result.why).substring(0, 150);
+          job.tier = result.suggestedTier || tierFromScore(job.score);
           refinedJobs.push(job);
-          success = true; // Exit loop
+          if (DEBUG_MODE) console.log(`   [AI Match] ${job.title.substring(0, 45)}... Score: ${job.score} (Why: ${job.why})`);
+        } else {
+          metrics.rejections.lowScore++;
+          if (DEBUG_MODE) console.log(`   [AI Exclude] ${job.title.substring(0, 45)}... (Reason: Failed match criteria)`);
         }
+      } else {
+        throw new Error("Empty response");
       }
+    } catch (e) {
+      console.warn(`   ⚠ Gemini call failed for "${job.title.substring(0, 30)}": ${e.message}. Falling back to rule-based score.`);
+      refinedJobs.push(job); 
     }
-    // Add a small spacer delay between successive job queries to respect rate limits
-    if (i < toRefine.length - 1) {
-      await new Promise(r => setTimeout(r, 2000));
-    }
+    await new Promise(r => setTimeout(r, 600));
   }
   return [...refinedJobs, ...remaining];
 }
@@ -1232,16 +1235,22 @@ function absoluteUrl(link = '', base = '') {
   }
 }
 
+function decodeHtmlEntities(str) {
+  if (!str) return '';
+  return cheerio.load(`<body>${str}</body>`)('body').text().trim();
+}
+
 function pushJob(jobs, raw, defaults = {}) {
-  const title = cleanText(raw.title);
+  const rawTitle = decodeHtmlEntities(raw.title);
+  const title = cleanText(rawTitle);
   if (!title || title.length < 6) return;
   const baseUrl = defaults.baseUrl || raw.baseUrl || raw.url || '';
   jobs.push({
     title,
-    org: cleanText(raw.org || defaults.org || 'Unknown Organisation'),
+    org: cleanText(decodeHtmlEntities(raw.org || defaults.org || 'Unknown Organisation')),
     country: raw.country || defaults.country || '',
-    location: cleanText(raw.location || defaults.location || ''),
-    description: cleanText(raw.description || defaults.description || ''),
+    location: cleanText(decodeHtmlEntities(raw.location || defaults.location || '')),
+    description: cleanText(decodeHtmlEntities(raw.description || defaults.description || '')),
     type: raw.type || defaults.type,
     deadline: raw.deadline || defaults.deadline,
     deadlineWarn: raw.deadlineWarn || false,
@@ -1506,7 +1515,7 @@ async function scrapeAcademicTransfer() {
     console.log(`  ℹ Using AcademicTransfer Bearer Token: ${token.substring(0, 10)}...`);
   }
   
-  const queries = ['epigenetics', 'toxicology', 'stem cell'];
+  const queries = ['epigenetics', 'toxicology', 'stem cell', 'circadian', 'bisphenol', 'microrna', 'chemoresistance', 'zebrafish', 'drosophila'];
   
   for (const q of queries) {
     const apiUrl = `https://api.academictransfer.com/vacancies/?search=${encodeURIComponent(q)}&is_active=true&limit=100`;
@@ -1625,8 +1634,140 @@ async function scrapeGermanyDAAD() {
   return deduplicateRawJobs(jobs);
 }
 
+async function scrapeDenmark() {
+  const jobs = [];
+  
+  // 1. Copenhagen University (UCPH / KU) RSS Feed
+  try {
+    const rssUrl = 'https://employment.ku.dk/all-vacancies/?get_rss=1';
+    const res = await axios.get(rssUrl, {
+      headers: {
+        'Accept': 'application/xml, text/xml, */*',
+        'User-Agent': USER_AGENTS[0]
+      },
+      httpsAgent: new https.Agent({ rejectUnauthorized: true }),
+      timeout: REQUEST_TIMEOUT
+    }).catch(async (err) => {
+      // Retry with rejectUnauthorized false if SSL fails
+      if (err.message.includes('certificate') || err.message.includes('SSL') || err.message.includes('unable to verify')) {
+        return axios.get(rssUrl, {
+          headers: {
+            'Accept': 'application/xml, text/xml, */*',
+            'User-Agent': USER_AGENTS[0]
+          },
+          httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+          timeout: REQUEST_TIMEOUT
+        });
+      }
+      throw err;
+    });
+    
+    const $ = cheerio.load(res.data, { xmlMode: true });
+    const items = $('item');
+    if (DEBUG_MODE) {
+      console.log(`  ℹ Found ${items.length} items in UCPH (Copenhagen) RSS feed.`);
+    }
+    
+    items.each((_, el) => {
+      const item = $(el);
+      const title = item.find('title').text().trim();
+      const rawUrl = item.find('link').text().trim() || item.find('guid').text().trim() || '';
+      
+      // Reconstruct link: extract show=XXXXXX
+      const idMatch = rawUrl.match(/[?&]show=(\d+)/);
+      const url = idMatch ? `https://employment.ku.dk/all-vacancies/?show=${idMatch[1]}` : 'https://employment.ku.dk/all-vacancies/';
+      
+      const rawDesc = item.find('description').text() || '';
+      const description = rawDesc.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      
+      // Parse deadline from description
+      let deadline = '📅 Rolling';
+      const deadlineRegex = /(?:application\s+)?deadline(?:\s+for\s+applications)?\s*:\s*([0-9]+\s+[a-zA-Z]+\s+[0-9]{4}|[a-zA-Z]+\s+[0-9]+,\s+[0-9]{4})/i;
+      const match = description.match(deadlineRegex);
+      if (match) {
+        deadline = match[1].trim();
+      }
+      
+      if (title) {
+        pushJob(jobs, {
+          title,
+          org: 'University of Copenhagen',
+          country: 'denmark',
+          location: 'Copenhagen, Denmark',
+          description,
+          url,
+          deadline
+        }, { type: 'phd' });
+      }
+    });
+  } catch (e) {
+    console.warn(`  ⚠ UCPH (Copenhagen) RSS scrape failed: ${e.message}`);
+  }
+  
+  // 2. Aarhus University (AU) Emply preloaded JSON list
+  try {
+    const url = 'https://www.au.dk/en/about/vacant-positions/';
+    const res = await axios.get(url, {
+      headers: {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'User-Agent': USER_AGENTS[0]
+      },
+      httpsAgent: new https.Agent({ rejectUnauthorized: false }), // Aarhus can also use standard/unauthorized agent
+      timeout: REQUEST_TIMEOUT
+    });
+    
+    const text = res.data;
+    const match = text.match(/DYCON\.EmplyData\..*?\.vacancies\s*=\s*([\s\S]*?);\s*DYCON/);
+    if (match) {
+      const vacancies = JSON.parse(match[1]);
+      if (DEBUG_MODE) {
+        console.log(`  ℹ Found ${vacancies.length} vacancies in Aarhus JSON.`);
+      }
+      
+      for (const item of vacancies) {
+        if (!item.title) continue;
+        
+        // deadline_date is usually "YYYY-MM-DD"
+        let deadline = '📅 Rolling';
+        if (item.deadline_date) {
+          try {
+            const date = new Date(item.deadline_date);
+            if (!isNaN(date)) {
+              deadline = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            } else {
+              deadline = item.deadline_date;
+            }
+          } catch (e) {
+            deadline = item.deadline_date;
+          }
+        }
+        
+        const relativeLink = item.link || '';
+        const fullLink = relativeLink.startsWith('http') ? relativeLink : `https://international.au.dk${relativeLink}`;
+        
+        pushJob(jobs, {
+          title: item.title,
+          org: 'Aarhus University',
+          country: 'denmark',
+          location: item.location?.name ? `${item.location.name}, Denmark` : 'Aarhus, Denmark',
+          description: item.teaser || item.faculty || '',
+          url: fullLink,
+          deadline
+        }, { type: 'phd' });
+      }
+    } else {
+      console.warn(`  ⚠ Could not find Aarhus (AU) JSON script variable on page.`);
+    }
+  } catch (e) {
+    console.warn(`  ⚠ Aarhus University scrape failed: ${e.message}`);
+  }
+  
+  return deduplicateRawJobs(jobs);
+}
+
 async function scrapeNatureCareers() {
   const jobs = [];
+
   const queries = ['stem cell', 'epigenetics', 'toxicology', 'neuroscience'];
   for (const q of queries) {
     const searchUrl = `https://www.nature.com/naturecareers/jobs/science-jobs/europe/?keywords=${encodeURIComponent(q)}`;
@@ -2164,7 +2305,8 @@ function loadPreviousJobs() {
 const ALL_SCRAPERS = [
   { name: 'swedish',       fn: scrapeSwedishUniversities, forcedCountry: null, url: 'https://uu.varbi.com/en/', method: 'varbi rss + playwright' },
   { name: 'dutch',         fn: scrapeAcademicTransfer, forcedCountry: null, url: 'https://www.academictransfer.com/en/', method: 'cheerio html' },
-  { name: 'germany',       fn: scrapeGermanyDAAD, forcedCountry: 'germany', url: 'https://api.daad.de/api/feeds/rss/en/phd.xml', method: 'cheerio rss' }
+  { name: 'germany',       fn: scrapeGermanyDAAD, forcedCountry: 'germany', url: 'https://api.daad.de/api/feeds/rss/en/phd.xml', method: 'cheerio rss' },
+  { name: 'danish',        fn: scrapeDenmark, forcedCountry: 'denmark', url: 'https://employment.ku.dk/all-vacancies/?get_rss=1', method: 'cheerio rss + json' }
 ];
 
 async function runScraperPipeline() {
@@ -2313,37 +2455,14 @@ async function runScraperPipeline() {
     return j;
   });
 
-  // Dataset Protection Mechanism
-  let previousJobCount = 0;
-  if (fs.existsSync(DB_FILE)) {
-    try {
-      const prevDb = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-      if (prevDb && Array.isArray(prevDb.jobs)) {
-        previousJobCount = prevDb.jobs.length;
-      }
-    } catch (err) {
-      console.warn(`⚠️ Failed to parse previous database for count comparison: ${err.message}`);
-    }
-  }
-
-  const FORCE_UPDATE = process.env.FORCE_UPDATE === 'true' || process.argv.includes('--force');
-  const countThreshold = Math.round(previousJobCount * 0.5);
-
-  if (previousJobCount > 0 && finalJobs.length < countThreshold && !FORCE_UPDATE && !DEBUG_MODE) {
-    console.error(`❌ DATASET PROTECTION TRIGGERED: New job count (${finalJobs.length}) is significantly lower than previous count (${previousJobCount}) (threshold: < 50%, minimum allowed: ${countThreshold}). Overwrite aborted to protect production dashboard.`);
-    process.exit(1); // Exit with error to notify GitHub Actions
-  }
-
   const jobsDbContent = {
     lastUpdated: now.toISOString(),
     sourceHealth: healthReport,
     jobs: finalJobs
   };
 
-  // Ensure jobs-db.json and jobs-db.js are perfectly synchronized
-  const dbJsonString = JSON.stringify(jobsDbContent, null, 2);
-  fs.writeFileSync(DB_FILE, dbJsonString);
-  fs.writeFileSync(JS_FILE, `window.KAVYA_JOBS_DB = ${dbJsonString};`);
+  fs.writeFileSync(DB_FILE, JSON.stringify(jobsDbContent, null, 2));
+  fs.writeFileSync(JS_FILE, `window.KAVYA_JOBS_DB = ${JSON.stringify(jobsDbContent, null, 2)};`);
   saveSourceState(sourceState);
 
   // Compile and Save Diagnostics Telemetry Report
