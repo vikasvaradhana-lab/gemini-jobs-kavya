@@ -1,5 +1,5 @@
 window.KAVYA_JOBS_DB = {
-  "lastUpdated": "2026-06-05T15:52:51.256Z",
+  "lastUpdated": "2026-06-05T16:10:42.422Z",
   "sourceHealth": {
     "swedish": "healthy",
     "dutch": "healthy",
@@ -8,43 +8,18 @@ window.KAVYA_JOBS_DB = {
   },
   "jobs": [
     {
-      "id": "swedish-uppsala-university--forskningsassistent",
-      "country": "sweden",
-      "tier": "medium",
-      "type": "phd",
-      "org": "Uppsala University",
-      "score": 65,
-      "title": "Forskningsassistent",
-      "tags": [
-        "🏢 Industry",
-        "📍 Uppsala"
-      ],
-      "why": "Your strong research techniques in epigenomics, cell culture, and molecular toxicology align with general university research needs.",
-      "deadline": "📅 Rolling",
-      "deadlineWarn": false,
-      "url": "https://uu.varbi.com/en/what:job/jobID:942977/",
-      "source": "live",
-      "sourceName": "swedish",
-      "portal": "Varbi (Sweden)",
-      "fetchedAt": "2026-06-05T15:47:19.162Z",
-      "dateFound": "2026-06-05T15:47:19.162Z",
-      "roleType": "research-assistant",
-      "domain": "neurobiology",
-      "sourceType": "academic"
-    },
-    {
       "id": "swedish-lund-university--i-tum-rbiologi",
       "country": "sweden",
       "tier": "high",
       "type": "phd",
       "org": "Lund University",
-      "score": 100,
+      "score": 85,
       "title": "Doktorand i tumörbiologi",
       "tags": [
         "🎓 PhD",
         "📍 Lund"
       ],
-      "why": "Beskrivning av arbetsplatsen Forskargruppen, ledd av universitetslektor Charlotte Rolny, bedriver experimentell och translationell forskning inom hjärntumörer o…",
+      "why": "Your expertise in developmental epigenomics, DNA methylation, molecular toxicology, and Caco-2 models aligns strongly with tumor biology.",
       "deadline": "📅 Rolling",
       "deadlineWarn": false,
       "url": "https://lu.varbi.com/en/what:job/jobID:941795/",
@@ -60,16 +35,16 @@ window.KAVYA_JOBS_DB = {
     {
       "id": "swedish-lund-university--f-r-projekt-inom-glymfatisk-hj-",
       "country": "sweden",
-      "tier": "high",
+      "tier": "medium",
       "type": "phd",
       "org": "Lund University",
-      "score": 100,
+      "score": 65,
       "title": "Doktorand för projekt inom glymfatisk hjärnstädning",
       "tags": [
         "🎓 PhD",
         "📍 Lund"
       ],
-      "why": "Beskrivning av verksamheten Vi erbjuder en doktorandtjänst för att jobba med forskning inom neurovetenskap. Arbetet i Glia-Immune Interactions-laboratoriet är c…",
+      "why": "Your background in neurodegeneration disease modeling and dorsal forebrain differentiation offers a foundational fit for brain research.",
       "deadline": "📅 Rolling",
       "deadlineWarn": false,
       "url": "https://lu.varbi.com/en/what:job/jobID:935563/",
@@ -1634,6 +1609,31 @@ window.KAVYA_JOBS_DB = {
       "dateFound": "2026-06-05T15:47:19.329Z",
       "roleType": "phd",
       "domain": "generic-biology",
+      "sourceType": "academic"
+    },
+    {
+      "id": "swedish-uppsala-university--forskningsassistent",
+      "country": "sweden",
+      "tier": "medium",
+      "type": "phd",
+      "org": "Uppsala University",
+      "score": 65,
+      "title": "Forskningsassistent",
+      "tags": [
+        "🏢 Industry",
+        "📍 Uppsala"
+      ],
+      "why": "Your strong research techniques in epigenomics, cell culture, and molecular toxicology align with general university research needs.",
+      "deadline": "📅 Rolling",
+      "deadlineWarn": false,
+      "url": "https://uu.varbi.com/en/what:job/jobID:942977/",
+      "source": "live",
+      "sourceName": "swedish",
+      "portal": "Varbi (Sweden)",
+      "fetchedAt": "2026-06-05T15:47:19.162Z",
+      "dateFound": "2026-06-05T15:47:19.162Z",
+      "roleType": "research-assistant",
+      "domain": "neurobiology",
       "sourceType": "academic"
     },
     {
