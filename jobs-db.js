@@ -1,5 +1,5 @@
 window.KAVYA_JOBS_DB = {
-  "lastUpdated": "2026-06-05T09:57:40.381Z",
+  "lastUpdated": "2026-06-05T10:06:12.736Z",
   "sourceHealth": {
     "swedish": "healthy",
     "dutch": "healthy",
