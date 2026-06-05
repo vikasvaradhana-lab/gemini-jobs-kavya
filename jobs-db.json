@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-06-05T10:06:12.736Z",
+  "lastUpdated": "2026-06-05T10:10:28.420Z",
   "sourceHealth": {
     "swedish": "healthy",
     "dutch": "healthy",
@@ -9,16 +9,16 @@
     {
       "id": "swedish-uppsala-university--forskningsassistent",
       "country": "sweden",
-      "tier": "high",
+      "tier": "medium",
       "type": "phd",
       "org": "Uppsala University",
-      "score": 100,
+      "score": 65,
       "title": "Forskningsassistent",
       "tags": [
         "🏢 Industry",
         "📍 Uppsala"
       ],
-      "why": "Institutionen för immunologi, genetik och patologi vid Uppsala universitet har en bred forskningsprofil med starka forskargrupper inriktade på bl. a cancer, gen…",
+      "why": "A university research assistant role aligns with your general research expertise and experience, though specific fit is unclear without a job descript",
       "deadline": "📅 Rolling",
       "deadlineWarn": false,
       "url": "https://uu.varbi.com/en/what:job/jobID:942977/",
@@ -37,13 +37,13 @@
       "tier": "high",
       "type": "phd",
       "org": "Lund University",
-      "score": 100,
+      "score": 85,
       "title": "Doktorand i tumörbiologi",
       "tags": [
         "🎓 PhD",
         "📍 Lund"
       ],
-      "why": "Beskrivning av arbetsplatsen Forskargruppen, ledd av universitetslektor Charlotte Rolny, bedriver experimentell och translationell forskning inom hjärntumörer o…",
+      "why": "Excellent fit for epigenomics & DNA methylation in tumor biology. Kavya's Caco-2 cancer cell model experience is highly relevant for this PhD.",
       "deadline": "📅 Rolling",
       "deadlineWarn": false,
       "url": "https://lu.varbi.com/en/what:job/jobID:941795/",
@@ -62,13 +62,13 @@
       "tier": "high",
       "type": "phd",
       "org": "Lund University",
-      "score": 100,
+      "score": 85,
       "title": "Doktorand för projekt inom glymfatisk hjärnstädning",
       "tags": [
         "🎓 PhD",
         "📍 Lund"
       ],
-      "why": "Beskrivning av verksamheten Vi erbjuder en doktorandtjänst för att jobba med forskning inom neurovetenskap. Arbetet i Glia-Immune Interactions-laboratoriet är c…",
+      "why": "Your neurodegeneration modeling and brain differentiation expertise aligns well with glymphatic system research, crucial for brain health.",
       "deadline": "📅 Rolling",
       "deadlineWarn": false,
       "url": "https://lu.varbi.com/en/what:job/jobID:935563/",
@@ -104,31 +104,6 @@
       "dateFound": "2026-06-05T09:25:25.206Z",
       "roleType": "phd",
       "domain": "generic-biology",
-      "sourceType": "academic"
-    },
-    {
-      "id": "swedish-karolinska-institutet--forskningsspecialist-i-ba",
-      "country": "sweden",
-      "tier": "high",
-      "type": "phd",
-      "org": "Karolinska Institutet",
-      "score": 100,
-      "title": "Forskningsspecialist i Bakteriologi och vacciner",
-      "tags": [
-        "🏢 Industry",
-        "📍 Stockholm"
-      ],
-      "why": "Vill du bidra till medicinsk forskning av toppkvalitet? Institutionen för mikrobiologi, tumör- och cellbiologi (MTC) vid Karolinska Institutet bedriver forsknin…",
-      "deadline": "📅 Rolling",
-      "deadlineWarn": false,
-      "url": "https://ki.varbi.com/en/what:job/jobID:941850/",
-      "source": "live",
-      "sourceName": "swedish",
-      "portal": "Varbi (Sweden)",
-      "fetchedAt": "2026-06-05T09:25:25.218Z",
-      "dateFound": "2026-06-05T09:25:25.218Z",
-      "roleType": "research-assistant",
-      "domain": "toxicology",
       "sourceType": "academic"
     },
     {
