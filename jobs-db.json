@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-06-05T16:10:42.422Z",
+  "lastUpdated": "2026-06-06T02:43:48.989Z",
   "sourceHealth": {
     "swedish": "healthy",
     "dutch": "healthy",
@@ -7,81 +7,6 @@
     "danish": "healthy"
   },
   "jobs": [
-    {
-      "id": "swedish-lund-university--i-tum-rbiologi",
-      "country": "sweden",
-      "tier": "high",
-      "type": "phd",
-      "org": "Lund University",
-      "score": 85,
-      "title": "Doktorand i tumörbiologi",
-      "tags": [
-        "🎓 PhD",
-        "📍 Lund"
-      ],
-      "why": "Your expertise in developmental epigenomics, DNA methylation, molecular toxicology, and Caco-2 models aligns strongly with tumor biology.",
-      "deadline": "📅 Rolling",
-      "deadlineWarn": false,
-      "url": "https://lu.varbi.com/en/what:job/jobID:941795/",
-      "source": "live",
-      "sourceName": "swedish",
-      "portal": "Varbi (Sweden)",
-      "fetchedAt": "2026-06-05T15:47:19.205Z",
-      "dateFound": "2026-06-05T15:47:19.205Z",
-      "roleType": "phd",
-      "domain": "generic-biology",
-      "sourceType": "academic"
-    },
-    {
-      "id": "swedish-lund-university--f-r-projekt-inom-glymfatisk-hj-",
-      "country": "sweden",
-      "tier": "medium",
-      "type": "phd",
-      "org": "Lund University",
-      "score": 65,
-      "title": "Doktorand för projekt inom glymfatisk hjärnstädning",
-      "tags": [
-        "🎓 PhD",
-        "📍 Lund"
-      ],
-      "why": "Your background in neurodegeneration disease modeling and dorsal forebrain differentiation offers a foundational fit for brain research.",
-      "deadline": "📅 Rolling",
-      "deadlineWarn": false,
-      "url": "https://lu.varbi.com/en/what:job/jobID:935563/",
-      "source": "live",
-      "sourceName": "swedish",
-      "portal": "Varbi (Sweden)",
-      "fetchedAt": "2026-06-05T15:47:19.229Z",
-      "dateFound": "2026-06-05T15:47:19.229Z",
-      "roleType": "phd",
-      "domain": "neurobiology",
-      "sourceType": "academic"
-    },
-    {
-      "id": "swedish-lund-university--inom-deep-learning-baserad-bild",
-      "country": "sweden",
-      "tier": "high",
-      "type": "phd",
-      "org": "Lund University",
-      "score": 100,
-      "title": "Doktorand inom deep-learning-baserad bildanalys för RNA terapier",
-      "tags": [
-        "🎓 PhD",
-        "📍 Lund"
-      ],
-      "why": "Avdelning för onkologi, RNA terapier vid cancer Anders Wittrups grupp (RNA Therapeutics in Cancer) är belägen på Gunnar Nilsson våningen i Kampradhuset i direkt…",
-      "deadline": "📅 Rolling",
-      "deadlineWarn": false,
-      "url": "https://lu.varbi.com/en/what:job/jobID:926333/",
-      "source": "live",
-      "sourceName": "swedish",
-      "portal": "Varbi (Sweden)",
-      "fetchedAt": "2026-06-05T15:47:19.236Z",
-      "dateFound": "2026-06-05T15:47:19.236Z",
-      "roleType": "phd",
-      "domain": "generic-biology",
-      "sourceType": "academic"
-    },
     {
       "id": "swedish-karolinska-institutet--forskningsspecialist-i-ba",
       "country": "sweden",
@@ -681,6 +606,31 @@
       "portal": "AcademicTransfer (Netherlands)",
       "fetchedAt": "2026-06-05T15:47:19.332Z",
       "dateFound": "2026-06-05T15:47:19.332Z",
+      "roleType": "phd",
+      "domain": "generic-biology",
+      "sourceType": "academic"
+    },
+    {
+      "id": "swedish-lund-university--i-tum-rbiologi",
+      "country": "sweden",
+      "tier": "high",
+      "type": "phd",
+      "org": "Lund University",
+      "score": 85,
+      "title": "Doktorand i tumörbiologi",
+      "tags": [
+        "🎓 PhD",
+        "📍 Lund"
+      ],
+      "why": "Your expertise in developmental epigenomics, DNA methylation, molecular toxicology, and Caco-2 models aligns strongly with tumor biology.",
+      "deadline": "📅 Rolling",
+      "deadlineWarn": false,
+      "url": "https://lu.varbi.com/en/what:job/jobID:941795/",
+      "source": "live",
+      "sourceName": "swedish",
+      "portal": "Varbi (Sweden)",
+      "fetchedAt": "2026-06-05T15:47:19.205Z",
+      "dateFound": "2026-06-05T15:47:19.205Z",
       "roleType": "phd",
       "domain": "generic-biology",
       "sourceType": "academic"
@@ -1609,6 +1559,31 @@
       "dateFound": "2026-06-05T15:47:19.329Z",
       "roleType": "phd",
       "domain": "generic-biology",
+      "sourceType": "academic"
+    },
+    {
+      "id": "swedish-lund-university--f-r-projekt-inom-glymfatisk-hj-",
+      "country": "sweden",
+      "tier": "medium",
+      "type": "phd",
+      "org": "Lund University",
+      "score": 65,
+      "title": "Doktorand för projekt inom glymfatisk hjärnstädning",
+      "tags": [
+        "🎓 PhD",
+        "📍 Lund"
+      ],
+      "why": "Your background in neurodegeneration disease modeling and dorsal forebrain differentiation offers a foundational fit for brain research.",
+      "deadline": "📅 Rolling",
+      "deadlineWarn": false,
+      "url": "https://lu.varbi.com/en/what:job/jobID:935563/",
+      "source": "live",
+      "sourceName": "swedish",
+      "portal": "Varbi (Sweden)",
+      "fetchedAt": "2026-06-05T15:47:19.229Z",
+      "dateFound": "2026-06-05T15:47:19.229Z",
+      "roleType": "phd",
+      "domain": "neurobiology",
       "sourceType": "academic"
     },
     {
