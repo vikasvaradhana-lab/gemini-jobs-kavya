@@ -16,6 +16,7 @@ const DEBUG_MODE = process.argv.includes('--debug') || process.env.SCRAPER_DEBUG
 
 const REQUEST_TIMEOUT = 15000; 
 const MAX_JOBS_PER_SOURCE = 30;
+const GEMINI_BATCH_SIZE = 25;
 const MIN_SCORE_THRESHOLD = DEBUG_MODE ? 10 : 45; // lower in debug mode
 const COOLDOWN_HOURS = DEBUG_MODE ? 0 : 12;      // disable in debug mode
 const OFFLINE_RETRY_HOURS = DEBUG_MODE ? 0 : 48; // disable in debug mode
@@ -986,71 +987,128 @@ async function refineWithGemini(jobs) {
   }
 
   console.log(`\n🤖 Waking Gemini Curation Layer to evaluate top candidates...`);
-  const model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+  const model = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
   const refinedJobs = [];
 
   const rulesSorted = [...jobs].sort((a, b) => (b.score || 0) - (a.score || 0));
-  const toRefine = rulesSorted.slice(0, 25);
-  const remaining = rulesSorted.slice(25);
+  const toRefine = rulesSorted.slice(0, GEMINI_BATCH_SIZE);
+  const remaining = rulesSorted.slice(GEMINI_BATCH_SIZE);
 
-  let consecutiveFailures = 0;
+  if (toRefine.length === 0) {
+    return jobs;
+  }
 
-  for (let i = 0; i < toRefine.length; i++) {
-    const job = toRefine[i];
+  console.log(`🤖 Preparing to batch evaluate ${toRefine.length} candidates in a single request.`);
 
-    if (consecutiveFailures >= 3) {
-      if (i === 3 || DEBUG_MODE) {
-        console.log(`  ⚠ Disabling Gemini AI curation for the remaining ${toRefine.length - i} candidates due to consecutive API errors (quota/rate limit exhausted).`);
-      }
-      refinedJobs.push(job);
-      continue;
-    }
+  // Construct batch input array
+  const batchInput = toRefine.map(job => ({
+    id: job.id,
+    title: job.title,
+    description: job.description ? job.description.substring(0, 1200) : 'No description available.',
+    score: job.score
+  }));
 
-    const prompt = `You are a career matching AI for Kavya, a researcher with a unique profile:
+  const prompt = `You are a career matching AI for Kavya, a researcher with a unique profile:
 - Core strengths: developmental epigenomics, DNA methylation, pyrosequencing, hESC/mESC culture, dorsal forebrain differentiation, SH-SY5Y and Caco-2 models, immunofluorescence, molecular toxicology, endocrine disruptors, neurodegeneration disease modeling.
 - Experience: 3 years QA/QC industry experience, GLP compliance, documentation standards, teaching/mentoring.
 
-Analyze if the following job listing is a good fit for her.
-Job Title: "${job.title}"
-Organization: "${job.org}"
-Job Description Summary: "${job.description ? job.description.substring(0, 1500) : 'No description available.'}"
+You will be given a JSON array of job opportunities to evaluate. For each job, analyze if it is a good fit for Kavya's profile.
+Jobs to evaluate:
+${JSON.stringify(batchInput, null, 2)}
 
-Return a JSON object with these exact keys:
+Return ONLY a valid JSON array of objects, one for each job, with these exact keys:
+- "id": string (must match the input id exactly)
 - "isMatch": boolean (false if it is a postdoc requiring completed PhD, senior professor, or out of field)
-- "refinedScore": integer (0-100, adjusting the base score based on alignment. Core matches get >75, general bio gets 55-75, stretch <55)
-- "why": string (max 140 characters, explaining the personal fit reasoning, e.g. "Fits your experience with Caco-2 models and molecular toxicology.")
-- "suggestedTier": string ("high" | "medium" | "stretch")`;
+- "fitTier": string ("excellent" | "good" | "stretch" | "poor")
+- "scoreAdjustment": integer (an integer between -30 and +30 to adjust the base score, e.g. +10 for excellent alignment, -15 for partial fit, 0 for neutral)
+- "why": string (max 140 characters, explaining the personal fit reasoning, e.g. "Fits your experience with Caco-2 models.")
 
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const res = await callGeminiWithRetry(url, {
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json' }
-      });
+Rules:
+- Return ONLY the JSON array. Do not include markdown code fences (like \`\`\`json), explanations, or prose outside JSON.
+- Ensure the response parses as a valid JSON array.`;
 
-      if (res.data && res.data.candidates && res.data.candidates[0].content.parts[0].text) {
-        const result = JSON.parse(res.data.candidates[0].content.parts[0].text.trim());
-        if (result.isMatch) {
-          job.score = Math.max(0, Math.min(Math.round(result.refinedScore), 100));
-          job.why = String(result.why).substring(0, 150);
-          job.tier = result.suggestedTier || tierFromScore(job.score);
-          refinedJobs.push(job);
-          if (DEBUG_MODE) console.log(`   [AI Match] ${job.title.substring(0, 45)}... Score: ${job.score} (Why: ${job.why})`);
-        } else {
-          metrics.rejections.lowScore++;
-          if (DEBUG_MODE) console.log(`   [AI Exclude] ${job.title.substring(0, 45)}... (Reason: Failed match criteria)`);
-        }
-        consecutiveFailures = 0; // reset on success
-      } else {
-        throw new Error("Empty response");
+  let responseData = null;
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const res = await callGeminiWithRetry(url, {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    });
+
+    if (res.data && res.data.candidates && res.data.candidates[0].content.parts[0].text) {
+      let text = res.data.candidates[0].content.parts[0].text.trim();
+      if (text.startsWith('```')) {
+        text = text.replace(/^```[a-z]*\n/i, '').replace(/\n```$/g, '').trim();
       }
-    } catch (e) {
-      console.warn(`   ⚠ Gemini call failed for "${job.title.substring(0, 30)}": ${e.message}. Falling back to rule-based score.`);
-      refinedJobs.push(job);
-      consecutiveFailures++; // increment on failure
+      responseData = JSON.parse(text);
+    } else {
+      throw new Error("Empty response from Gemini API");
     }
-    await new Promise(r => setTimeout(r, 4000));
+  } catch (e) {
+    console.warn(`   ⚠ Gemini batch API call failed: ${e.message}. Falling back to rule-based scores for all ${toRefine.length} jobs.`);
+    return jobs;
   }
+
+  // Map evaluations back to jobs
+  const evaluationsMap = new Map();
+  if (Array.isArray(responseData)) {
+    responseData.forEach(evalItem => {
+      if (evalItem && typeof evalItem === 'object' && evalItem.id) {
+        evaluationsMap.set(evalItem.id, evalItem);
+      }
+    });
+  }
+
+  let successfullyEvaluatedCount = 0;
+  let fallbackCount = 0;
+
+  for (const job of toRefine) {
+    const evaluation = evaluationsMap.get(job.id);
+
+    if (evaluation) {
+      if (evaluation.isMatch === false) {
+        job.tier = 'stretch';
+        job.why = String(evaluation.why ? `[Stretch] ${evaluation.why}` : 'Gemini evaluated as lower relevance.').substring(0, 150);
+        refinedJobs.push(job);
+        if (DEBUG_MODE) {
+          console.log(`   [AI Demoted to Stretch] "${job.title.substring(0, 45)}..." (Reason: ${job.why})`);
+        }
+      } else {
+        const adj = parseInt(evaluation.scoreAdjustment, 10) || 0;
+        job.score = Math.max(0, Math.min(Math.round(job.score + adj), 100));
+        job.why = String(evaluation.why || '').substring(0, 150) || job.why;
+        
+        const tierMap = {
+          'excellent': 'high',
+          'good': 'medium',
+          'high': 'high',
+          'medium': 'medium',
+          'stretch': 'stretch',
+          'poor': 'stretch'
+        };
+        const fitTierLower = String(evaluation.fitTier || '').toLowerCase();
+        job.tier = tierMap[fitTierLower] || tierFromScore(job.score);
+        
+        refinedJobs.push(job);
+        successfullyEvaluatedCount++;
+        if (DEBUG_MODE) {
+          console.log(`   [AI Match] "${job.title.substring(0, 45)}..." Adjusted Score: ${job.score} (Why: ${job.why})`);
+        }
+      }
+    } else {
+      refinedJobs.push(job);
+      fallbackCount++;
+      if (DEBUG_MODE) {
+        console.log(`   [AI Fallback] "${job.title.substring(0, 45)}..." Omitted by Gemini, retained with rule score: ${job.score}`);
+      }
+    }
+  }
+
+  console.log(`🤖 Gemini Curation Report:`);
+  console.log(` - Batch size sent: ${toRefine.length}`);
+  console.log(` - Successfully evaluated: ${successfullyEvaluatedCount}`);
+  console.log(` - Using fallback scoring (omitted by Gemini): ${fallbackCount}`);
+
   return [...refinedJobs, ...remaining];
 }
 
