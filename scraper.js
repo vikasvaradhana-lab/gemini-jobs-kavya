@@ -324,12 +324,22 @@ const DISCIPLINE_EXCLUDES = [
   'electrochemical', 'catalyst ink', 'water-driven materials', 'high-entropy-alloy',
   'nuclear structural', 'ion-irradiated', 'hpc/gpu computing', 'gpu computing',
   'bubble dynamics', 'water electrolysis', 'hydrogen production', 'water treatment',
-  'test and reliability', 'gs-imtr',
+  'test and reliability', 'gs-imtr', 'environmental engineering', 'life cycle assessment',
   // Veterinary / Animal husbandry exclusions
   'veterinary', 'veterinär', 'djursjukskötare', 'animal facility', 'animal keeper',
   // Humanities / Non-Bio / Cognitive / computational exclusions
   'psychology', 'psychiatry', 'law', 'legal', 'cognitive', 'computational neuroscience',
-  'generative ai', 'artificial intelligence', 'machine learning'
+  'generative ai', 'artificial intelligence', 'machine learning',
+  
+  // Multilingual / Nordic discipline exclusions
+  'sosiologi', 'pedagogikk', 'didaktikk', 'lærerutdanning', 'barnevern',
+  'arkeologi', 'historie', 'litteratur', 'forfatterskap', 'fagspråk',
+  'filosofi', 'rettsvitenskap', 'juridisk', 'statsvitenskap', 'samfunnsvitenskap',
+  'psykologi', 'sosialt arbeid', 'sosialfag', 'kunstnerisk', 'opera',
+  'musikk', 'teater', 'fysioterapi', 'rehabilitering', 'idrettsvitenskap',
+  'anestesisykepleie', 'operasjonssykepleie', 'odontologi', 'odontology',
+  'bore- og brønnteknologi', 'luft–hav-utvekslingsprosessar', 'bedriftsøkonomi',
+  'samfunnspsykologi', 'personnamngransking', 'grensestudier', 'urfolksforskning'
 ];
 
 const POSTDOC_EXCLUDES = [
@@ -549,6 +559,11 @@ function scoreJobMultiDimensional(title, description, sourceName) {
         idx = srcText.indexOf('giften', idx + 1);
       }
       return false;
+    }
+    if (kw.length <= 4) {
+      const escaped = kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp('\\b' + escaped + '\\b', 'i');
+      return regex.test(srcText);
     }
     return srcText.includes(kw);
   };
@@ -817,14 +832,9 @@ function scoreJobMultiDimensional(title, description, sourceName) {
     { kw: 'qc biology', w: 8 },
     { kw: 'quality control', w: 8 },
     { kw: 'reproducibility', w: 6 },
-    { kw: 'documentation', w: 5 },
     { kw: 'sop', w: 5 },
     
     // Multilingual operational
-    { kw: 'dokumentation', w: 5, multi: true },
-    { kw: 'dokumentasjon', w: 5, multi: true },
-    { kw: 'documentatie', w: 5, multi: true },
-    { kw: 'dokumentointi', w: 5, multi: true },
     { kw: 'kvalitetssäkring', w: 8, multi: true },
     { kw: 'qualitätssicherung', w: 8, multi: true },
     { kw: 'kwaliteitscontrole', w: 8, multi: true },
@@ -844,7 +854,7 @@ function scoreJobMultiDimensional(title, description, sourceName) {
   if (/life science|biolog|biomed|biochem|biotech|pharmaceutical|health|medical|research|laborator|scientist/i.test(text)) {
     boost = 5;
   }
-  const isIndustry = (sourceName === 'industry' || sourceName === 'novo' || text.includes('biotech') || text.includes('pharma') || text.includes('diagnostics'));
+  const isIndustry = (sourceName === 'industry' || sourceName === 'novo');
   if (isIndustry) {
     boost += 10;
   }
@@ -852,7 +862,6 @@ function scoreJobMultiDimensional(title, description, sourceName) {
   // Anti-Generic Penalty & Industry Exemptions/Waivers
   let penalty = 0;
   if (dim1 === 0 && dim4 === 0) {
-    const isIndustry = (sourceName === 'industry' || sourceName === 'novo' || text.includes('biotech') || text.includes('pharma') || text.includes('diagnostics'));
     const isRaOrTech = checkIsRATechTitle(title);
     
     if (isIndustry) {
@@ -1213,7 +1222,13 @@ function buildJob(raw, source) {
   }
   else if (source === 'novo') portal = 'Novo Nordisk Careers';
   else if (source === 'resteurope') portal = 'Max Planck / German Portals';
-  else if (source === 'finland') portal = 'Finland Portals';
+  else if (source === 'finland') {
+    if (orgName.includes('Helsinki')) portal = 'University of Helsinki';
+    else if (orgName.includes('Turku')) portal = 'University of Turku';
+    else if (orgName.includes('Åbo Akademi')) portal = 'Åbo Akademi';
+    else if (orgName.includes('Oulu')) portal = 'University of Oulu';
+    else portal = 'Finland Portals';
+  }
   else if (source === 'austria') {
     if (orgName.includes('BioCenter') || orgName.includes('IMP') || orgName.includes('IMBA') || orgName.includes('GMI') || orgName.includes('VBCF')) portal = 'Vienna BioCenter';
     else if (orgName.includes('CeMM')) portal = 'CeMM Vienna';
@@ -2251,53 +2266,179 @@ async function scrapeIndustryCareers() {
 
 async function scrapeNorway() {
   const jobs = [];
-  const jbUrl = 'https://www.jobbnorge.no/search?q=phd&AdCategoryId=64';
-  const jbJobs = await parseProtectedPage(jbUrl, { country: 'norway', baseUrl: 'https://www.jobbnorge.no/search' }, {
-    card: 'article, li, [class*="vacancy"], [class*="job"]',
-    title: 'h2, h3, a',
-    link: 'a[href]',
-  }, { waitForSelector: 'article, li' });
-  jobs.push(...jbJobs);
+  const terms = ['phd', 'stipendiat', 'biology', 'biologi'];
+  const uniqueItems = [];
+  const seenIds = new Set();
+  const headers = { 'User-Agent': USER_AGENTS[0] };
 
-  const uioUrl = 'https://www.uio.no/english/about/vacancies/academic/';
-  const html = await safeFetch(uioUrl);
-  if (html) {
-    const defaults = { org: 'University of Oslo', country: 'norway', location: 'Oslo', baseUrl: uioUrl };
-    jobs.push(...extractEmbeddedJobs(html, defaults));
-    jobs.push(...parseHtmlCards(html, defaults, { card: 'article, li, .vrtx-resource', title: 'h2, h3, a', link: 'a[href]' }));
+  for (const term of terms) {
+    try {
+      const url = `https://publicapi.jobbnorge.no/v1/Jobs?term=${encodeURIComponent(term)}`;
+      const res = await axios.get(url, { headers, timeout: REQUEST_TIMEOUT }).catch(() => null);
+      const data = res?.data;
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          if (!item.id || !item.title) continue;
+          if (!seenIds.has(item.id)) {
+            seenIds.add(item.id);
+            uniqueItems.push(item);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`  ⚠ Failed to fetch Jobbnorge listings for term "${term}": ${e.message}`);
+    }
   }
 
-  const ntnuUrl = 'https://www.ntnu.edu/vacancies';
-  const ntnuHtml = await safeFetch(ntnuUrl);
-  if (ntnuHtml) {
-    const defaults = { org: 'NTNU', country: 'norway', location: 'Trondheim', baseUrl: ntnuUrl };
-    jobs.push(...extractEmbeddedJobs(ntnuHtml, defaults));
-    jobs.push(...parseHtmlCards(ntnuHtml, defaults, { card: 'article, li, tr', title: 'h2, h3, a', link: 'a[href]' }));
+  // Pre-filter with title exclusions
+  const preFiltered = uniqueItems.filter(item => {
+    const excl = checkExclusionReason(item.title, '');
+    return !excl;
+  });
+
+  if (DEBUG_MODE) {
+    console.log(`  ℹ Jobbnorge: Found ${uniqueItems.length} unique items, pre-filtered down to ${preFiltered.length}`);
   }
+
+  // Fetch detailed descriptions in batches
+  const batchSize = 10;
+  for (let i = 0; i < preFiltered.length; i += batchSize) {
+    const batch = preFiltered.slice(i, i + batchSize);
+    await Promise.all(batch.map(async (item) => {
+      try {
+        // Fetch languages
+        const langRes = await axios.get(`https://id.jobbnorge.no/api/joblisting/languages?jobId=${item.id}&templateId=0`, { headers, timeout: 5000 }).catch(() => null);
+        const activeLangs = langRes?.data?.activeLanguages || [];
+        if (activeLangs.length === 0) return;
+        const langId = activeLangs[0];
+        
+        // Fetch detail
+        const detailRes = await axios.get(`https://id.jobbnorge.no/api/joblisting?jobId=${item.id}&languageId=${langId}`, { headers, timeout: 5000 }).catch(() => null);
+        const components = detailRes?.data?.components || [];
+        const fullDescription = components.map(c => (c.heading || '') + ' ' + (c.text || '')).join(' ');
+        
+        const deadline = item.deadline ? `📅 ${item.deadline}` : '📅 Rolling';
+        pushJob(jobs, {
+          title: item.title,
+          org: item.employer || 'Jobbnorge Norway',
+          location: item.location || 'Norway',
+          description: fullDescription || '',
+          url: item.link,
+          deadline: deadline
+        }, { country: 'norway', baseUrl: 'https://www.jobbnorge.no/' });
+      } catch (e) {
+        console.warn(`  ⚠ Failed to fetch details for Jobbnorge job ${item.id}: ${e.message}`);
+      }
+    }));
+    if (i + batchSize < preFiltered.length) {
+      await new Promise(r => setTimeout(r, 100)); // Short throttle delay
+    }
+  }
+
   return deduplicateRawJobs(jobs);
 }
 
 async function scrapeFinland() {
   const jobs = [];
-  const sources = [
-    { org: 'University of Helsinki', country: 'finland', location: 'Helsinki', url: 'https://www.helsinki.fi/en/about-us/careers/open-positions' },
-    { org: 'University of Turku', country: 'finland', location: 'Turku', url: 'https://www.utu.fi/en/university/come-work-with-us' },
-    { org: 'Åbo Akademi', country: 'finland', location: 'Turku', url: 'https://www.abo.fi/en/about-abo-akademi-university/come-work-with-us/' },
-    { org: 'Finnish Institute for Health and Welfare (THL)', country: 'finland', location: 'Helsinki', url: 'https://thl.fi/en/about-thl/open-vacancies' },
-    { org: 'University of Oulu', country: 'finland', location: 'Oulu', url: 'https://www.oulu.fi/en/jobs' }
-  ];
-  for (const src of sources) {
-    const html = await safeFetch(src.url);
-    if (html) {
-      const defaults = { org: src.org, country: src.country, location: src.location, baseUrl: src.url };
-      jobs.push(...extractEmbeddedJobs(html, defaults));
-      jobs.push(...parseHtmlCards(html, defaults, {
-        card: 'article, li, .vacancy, .job, [class*="position"]',
-        title: 'h2, h3, a',
-        link: 'a[href]',
-      }));
-    }
+
+  // 1. University of Helsinki (SuccessFactors via Playwright)
+  try {
+    const helsinkiUrl = 'https://jobs.helsinki.fi/search/?q=biology';
+    const helsinkiJobs = await parseProtectedPage(
+      helsinkiUrl,
+      { org: 'University of Helsinki', country: 'finland', location: 'Helsinki', baseUrl: 'https://jobs.helsinki.fi' },
+      {
+        card: 'tr.data-row',
+        title: 'a.jobTitle-link',
+        link: 'a.jobTitle-link',
+        deadline: 'span.jobDate'
+      },
+      { waitForSelector: 'tr.data-row', minRenderedFallback: 1 }
+    );
+    jobs.push(...helsinkiJobs);
+  } catch (e) {
+    console.warn(`  ⚠ Failed to scrape University of Helsinki: ${e.message}`);
   }
+
+  // 2. University of Turku (TalentAdore JSON API)
+  try {
+    const utuUrl = 'https://ats.talentadore.com/positions/3VMfJS4/json?v=2&display_language=en&tags=&notTags=&categories=tags_and_extras';
+    const data = await safeFetch(utuUrl);
+    if (data && Array.isArray(data.jobs)) {
+      for (const j of data.jobs) {
+        if (!j.name) continue;
+        const deadline = j.due_date ? `📅 ${j.due_date}` : '📅 Rolling';
+        pushJob(jobs, {
+          title: j.name,
+          org: 'University of Turku',
+          location: j.city || 'Turku',
+          description: j.description_text || '',
+          url: j.link,
+          deadline: deadline
+        }, { country: 'finland', baseUrl: 'https://www.utu.fi' });
+      }
+    }
+  } catch (e) {
+    console.warn(`  ⚠ Failed to scrape University of Turku (TalentAdore): ${e.message}`);
+  }
+
+  // 3. Åbo Akademi (Rekrytointi html)
+  try {
+    const aboUrl = 'https://abo.rekrytointi.com/paikat/index.php?o=A_LOJ&list=1&key=&lang=en';
+    const html = await safeFetch(aboUrl);
+    if (html) {
+      const $ = cheerio.load(html);
+      const groups = {};
+      $('a[href*="/paikat/index.php?jid="]').each((_, el) => {
+        const href = $(el).attr('href');
+        const text = $(el).text().trim();
+        if (!groups[href]) groups[href] = [];
+        groups[href].push(text);
+      });
+
+      for (const [href, texts] of Object.entries(groups)) {
+        let title = '';
+        let deadline = '📅 Rolling';
+        for (const text of texts) {
+          if (/\d{4}-\d{2}-\d{2}/.test(text)) {
+            deadline = `📅 ${text}`;
+          } else if (text && !title) {
+            title = text;
+          }
+        }
+        if (title) {
+          pushJob(jobs, {
+            title,
+            org: 'Åbo Akademi University',
+            location: 'Turku',
+            description: '',
+            url: href,
+            deadline
+          }, { country: 'finland', baseUrl: 'https://abo.rekrytointi.com' });
+        }
+      }
+    }
+  } catch (e) {
+    console.warn(`  ⚠ Failed to scrape Åbo Akademi: ${e.message}`);
+  }
+
+  // 4. University of Oulu (Varbi RSS)
+  try {
+    const ouluUrl = 'https://oulunyliopisto.varbi.com/what:rssfeed/';
+    const xml = await safeFetch(ouluUrl);
+    if (xml) {
+      const parsed = parseRssItems(xml, {
+        org: 'University of Oulu',
+        country: 'finland',
+        location: 'Oulu',
+        baseUrl: 'https://oulunyliopisto.varbi.com/en/'
+      });
+      jobs.push(...parsed);
+    }
+  } catch (e) {
+    console.warn(`  ⚠ Failed to scrape University of Oulu: ${e.message}`);
+  }
+
   return deduplicateRawJobs(jobs);
 }
 
@@ -2726,7 +2867,9 @@ const ALL_SCRAPERS = [
   { name: 'danish',        fn: scrapeDenmark, forcedCountry: 'denmark', url: 'https://employment.ku.dk/all-vacancies/?get_rss=1', method: 'cheerio rss + json' },
   { name: 'uk',            fn: scrapeUnitedKingdom, forcedCountry: null, url: 'https://www.findaphd.com/', method: 'cheerio html + jobs.ac.uk' },
   { name: 'switzerland',   fn: scrapeSwitzerland, forcedCountry: 'switzerland', url: 'https://jobs.ethz.ch/', method: 'cheerio html + playwright' },
-  { name: 'austria',       fn: scrapeAustria, forcedCountry: 'austria', url: 'https://www.viennabiocenter.org/career/open-positions/', method: 'cheerio html + playwright' }
+  { name: 'austria',       fn: scrapeAustria, forcedCountry: 'austria', url: 'https://www.viennabiocenter.org/career/open-positions/', method: 'cheerio html + playwright' },
+  { name: 'norway',        fn: scrapeNorway, forcedCountry: 'norway', url: 'https://publicapi.jobbnorge.no/v1/Jobs', method: 'REST API' },
+  { name: 'finland',       fn: scrapeFinland, forcedCountry: 'finland', url: 'https://jobs.helsinki.fi/', method: 'cheerio html + playwright + TalentAdore API + Varbi RSS' }
 ];
 
 async function runScraperPipeline() {

@@ -1,46 +1,58 @@
 {
   "sources": {
-    "germany": {
+    "switzerland": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-06T09:00:00.000Z",
-      "contentHash": "70734df61d98b3cb3efe7c414f533506"
+      "lastSuccess": "2026-06-06T09:35:55.130Z",
+      "contentHash": "42c160cf3d1848cea7063527a1a2f1d7"
     },
-    "dutch": {
+    "finland": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-06T09:00:00.000Z",
-      "contentHash": "732279aafbc0dd7d3d14888c1e79f744"
+      "lastSuccess": "2026-06-06T09:35:55.130Z",
+      "contentHash": "84f353d2d4a73acd720a27c4f21cf904"
     },
     "danish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-06T09:00:00.000Z",
-      "contentHash": "bbb8b41b00c06a23a73a00026737ee19"
+      "lastSuccess": "2026-06-06T09:35:55.130Z",
+      "contentHash": "45738874406847b0a39ebe386a672566"
     },
-    "swedish": {
+    "dutch": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-06T09:00:00.000Z",
-      "contentHash": "e9f4f7ba695de336895024dd095deaf9"
+      "lastSuccess": "2026-06-06T09:35:55.130Z",
+      "contentHash": "8af079f3740b1bd4c5503094c85ac060"
     },
-    "uk": {
+    "norway": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-06T09:00:00.000Z",
-      "contentHash": "uk-hash-mock-123"
+      "lastSuccess": "2026-06-06T09:35:55.130Z",
+      "contentHash": "cd4eb00577294fd50f6fa491b1d424f6"
     },
-    "switzerland": {
+    "germany": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-06T04:15:53.258Z",
-      "contentHash": "42c160cf3d1848cea7063527a1a2f1d7"
+      "lastSuccess": "2026-06-06T09:35:55.130Z",
+      "contentHash": "d751713988987e9331980363e24189ce"
     },
     "austria": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-06T04:47:22.261Z",
+      "lastSuccess": "2026-06-06T09:35:55.130Z",
       "contentHash": "a135c07dd788536095e18bf5733ebe7e"
+    },
+    "swedish": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-06T09:35:55.130Z",
+      "contentHash": "2f2db049168ec71802a52ae806cc1b10"
+    },
+    "uk": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-06T09:35:55.130Z",
+      "contentHash": "600fae53b82140ae1d3b1ef722337475"
     }
   }
 }

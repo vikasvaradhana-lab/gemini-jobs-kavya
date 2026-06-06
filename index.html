@@ -944,6 +944,19 @@ body::before {
     gap: 12px;
     padding: 16px 20px;
   }
+  .top-bar-first-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .top-bar h1 {
+    white-space: normal;
+  }
+  .top-bar h1 span {
+    display: block;
+    margin-left: 0;
+    margin-top: 4px;
+  }
   .top-bar-right {
     width: 100%;
     justify-content: space-between;
@@ -969,6 +982,13 @@ body::before {
   left: 0 !important;
   right: auto !important;
   width: 272px !important;
+}
+
+@media (min-width: 1025px) {
+  html, body {
+    height: 100vh;
+    overflow: hidden;
+  }
 }
 </style>
 
@@ -2368,14 +2388,15 @@ const PORTALS = {
     { name: 'LIST (Science & Tech)', url: 'https://www.list.lu/en/jobs/' }
   ],
   norway: [
-    { name: 'Jobbnorge', url: 'https://www.jobbnorge.no/search' },
-    { name: 'University of Oslo', url: 'https://www.uio.no/english/about/jobs/' },
-    { name: 'NTNU', url: 'https://www.ntnu.edu/vacancies' }
+    { name: 'Jobbnorge Search', url: 'https://www.jobbnorge.no/en/available-jobs' },
+    { name: 'University of Oslo', url: 'https://www.jobbnorge.no/en/available-jobs/search?q=uio' },
+    { name: 'NTNU Careers', url: 'https://www.jobbnorge.no/en/available-jobs/search?q=ntnu' }
   ],
   finland: [
-    { name: 'University of Helsinki', url: 'https://www.helsinki.fi/en/about-us/careers/open-positions' },
-    { name: 'University of Turku', url: 'https://www.utu.fi/en/university/open-positions' },
-    { name: 'Åbo Akademi', url: 'https://www.abo.fi/en/about-abo-akademi-university/come-work-with-us/' }
+    { name: 'University of Helsinki', url: 'https://jobs.helsinki.fi/' },
+    { name: 'University of Turku', url: 'https://www.utu.fi/en/university/come-work-with-us/open-vacancies' },
+    { name: 'Åbo Akademi', url: 'https://abo.rekrytointi.com/paikat/index.php?o=A_LOJ&list=1&key=&lang=en' },
+    { name: 'University of Oulu', url: 'https://oulunyliopisto.varbi.com/en/' }
   ],
   austria: [
     { name: 'Vienna BioCenter', url: 'https://www.viennabiocenter.org/career/open-positions/' },
