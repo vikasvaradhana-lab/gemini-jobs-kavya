@@ -892,7 +892,7 @@ function typeFromText(text) {
 
 // ─── TIERED DEDUPLICATION SYSTEM ─────────────────────────────────────────────
 const SOURCE_TIERS = {
-  'swedish': 1, 'dutch': 1, 'danish': 1, 'embl': 1, 'novo': 1, 'industry': 1, 'norway': 1, 'finland': 1, 'austria': 1,
+  'swedish': 1, 'dutch': 1, 'danish': 1, 'embl': 1, 'novo': 1, 'industry': 1, 'norway': 1, 'finland': 1, 'austria': 1, 'switzerland': 1,
   'euraxess': 2,
   'nature': 3, 'academicpos': 3, 'findaphd': 3,
   'default': 4
@@ -1204,10 +1204,23 @@ function buildJob(raw, source) {
   else if (source === 'academicpos') portal = 'Academic Positions';
   else if (source === 'nature') portal = 'Nature Careers';
   else if (source === 'findaphd') portal = 'FindAPhD';
+  else if (source === 'uk') portal = 'FindAPhD (UK)';
+  else if (source === 'switzerland') {
+    if (orgName.includes('ETH')) portal = 'ETH Zurich';
+    else if (orgName.includes('Basel')) portal = 'University of Basel';
+    else if (orgName.includes('Bern')) portal = 'University of Bern';
+    else portal = 'Swiss Portals';
+  }
   else if (source === 'novo') portal = 'Novo Nordisk Careers';
   else if (source === 'resteurope') portal = 'Max Planck / German Portals';
   else if (source === 'finland') portal = 'Finland Portals';
-  else if (source === 'austria') portal = 'Austria Portals';
+  else if (source === 'austria') {
+    if (orgName.includes('BioCenter') || orgName.includes('IMP') || orgName.includes('IMBA') || orgName.includes('GMI') || orgName.includes('VBCF')) portal = 'Vienna BioCenter';
+    else if (orgName.includes('CeMM')) portal = 'CeMM Vienna';
+    else if (orgName.includes('Medical University') || orgName.includes('MedUni')) portal = 'Medical University of Vienna';
+    else if (orgName.includes('University of Vienna') || orgName.includes('Univie')) portal = 'University of Vienna';
+    else portal = 'Austria Portals';
+  }
   else if (source === 'canada') portal = 'Canada Portals';
   else if (source === 'singapore') portal = 'Singapore Portals';
   else if (source === 'australia') portal = 'Australia Portals';
@@ -1251,6 +1264,9 @@ const COUNTRY_MAP = {
   'canada': 'canada', 'ca': 'canada',
   'singapore': 'singapore', 'sg': 'singapore',
   'australia': 'australia', 'au': 'australia',
+  'united kingdom': 'united kingdom', 'uk': 'united kingdom', 'gb': 'united kingdom',
+  'england': 'united kingdom', 'scotland': 'united kingdom', 'wales': 'united kingdom',
+  'northern ireland': 'united kingdom',
 };
 
 const CITY_COUNTRY_MAP = {
@@ -1266,7 +1282,13 @@ const CITY_COUNTRY_MAP = {
   'vienna': 'austria', 'graz': 'austria', 'innsbruck': 'austria', 'salzburg': 'austria',
   'toronto': 'canada', 'vancouver': 'canada', 'montreal': 'canada', 'ottawa': 'canada',
   'singapore': 'singapore',
-  'melbourne': 'australia', 'sydney': 'australia', 'brisbane': 'australia', 'adelaide': 'australia', 'perth': 'australia', 'canberra': 'australia'
+  'melbourne': 'australia', 'sydney': 'australia', 'brisbane': 'australia', 'adelaide': 'australia', 'perth': 'australia', 'canberra': 'australia',
+  'london': 'united kingdom', 'oxford': 'united kingdom', 'cambridge': 'united kingdom',
+  'manchester': 'united kingdom', 'edinburgh': 'united kingdom', 'glasgow': 'united kingdom',
+  'bristol': 'united kingdom', 'birmingham': 'united kingdom', 'leeds': 'united kingdom',
+  'sheffield': 'united kingdom', 'liverpool': 'united kingdom', 'newcastle': 'united kingdom',
+  'nottingham': 'united kingdom', 'southampton': 'united kingdom', 'cardiff': 'united kingdom',
+  'belfast': 'united kingdom', 'leicester': 'united kingdom', 'exeter': 'united kingdom',
 };
 
 function resolveCountry(raw = '') {
@@ -2076,9 +2098,6 @@ async function scrapeRestOfEurope() {
     { name: 'DKFZ', country: 'germany', location: 'Heidelberg', url: 'https://www.dkfz.de/en/stellenangebote/index.php' },
     { name: 'VIB', country: 'belgium', location: 'Ghent', url: 'https://vib.be/careers?filter=PhD' },
     { name: 'KU Leuven', country: 'belgium', location: 'Leuven', url: 'https://www.kuleuven.be/personeel/jobsite/en/jobs?q=biology' },
-    { name: 'ETH Zurich', country: 'switzerland', location: 'Zurich', url: 'https://jobs.ethz.ch/page/en/open-positions?text=epigenetics+stem+cell+toxicology' },
-    { name: 'University of Basel', country: 'switzerland', location: 'Basel', url: 'https://jobs.unibas.ch/en/vacancies/?q=biology' },
-    { name: 'University of Bern', country: 'switzerland', location: 'Bern', url: 'https://jobs.unibe.ch' },
     { name: 'LIST Luxembourg', country: 'luxembourg', location: 'Luxembourg', url: 'https://www.list.lu/en/career/job-offers/' }
   ];
   for (const src of sources) {
@@ -2284,22 +2303,159 @@ async function scrapeFinland() {
 
 async function scrapeAustria() {
   const jobs = [];
-  const sources = [
-    { org: 'IMP Vienna', country: 'austria', location: 'Vienna', url: 'https://www.imp.ac.at/career/open-positions/' },
-    { org: 'IMBA Vienna', country: 'austria', location: 'Vienna', url: 'https://www.imba.oeaw.ac.at/about-imba/careers/open-positions/' },
-    { org: 'CeMM Vienna', country: 'austria', location: 'Vienna', url: 'https://cemm.at/career/' },
-    { org: 'Medical University of Vienna', country: 'austria', location: 'Vienna', url: 'https://jobs.meduniwien.ac.at/en/open-positions/' },
-    { org: 'University of Vienna', country: 'austria', location: 'Vienna', url: 'https://jobcenter.univie.ac.at/en/jobs-and-vacancies/' },
-  ];
-  for (const src of sources) {
-    const defaults = { org: src.org, country: src.country, location: src.location, baseUrl: src.url };
-    const apJobs = await parseProtectedPage(src.url, defaults, {
-      card: 'article, li, .vacancy, .job, [class*="position"]',
-      title: 'h2, h3, a',
-      link: 'a[href]',
-    }, { waitForSelector: 'article, li, a' });
-    jobs.push(...apJobs);
+
+  // 1. Vienna BioCenter (Centralized portal)
+  try {
+    const vbcUrl = 'https://www.viennabiocenter.org/career/open-positions/';
+    const html = await renderPageHtml(vbcUrl, { waitForSelector: 'div.item' });
+    if (html) {
+      const $ = cheerio.load(html);
+      $('div.item').each((_, el) => {
+        const titleEl = $(el).find('div.title');
+        const title = cleanText(titleEl.text());
+        const linkEl = $(el).find('a[href]');
+        const href = linkEl.attr('href') || '';
+        const imgAlt = $(el).find('img').attr('alt') || '';
+        
+        let org = 'Vienna BioCenter';
+        if (imgAlt) {
+          org = imgAlt.trim();
+        }
+        
+        const timeEl = $(el).find('div.time time');
+        let deadline = undefined;
+        if (timeEl.length > 0) {
+          deadline = cleanText(timeEl.text());
+        }
+
+        if (title && href) {
+          pushJob(jobs, {
+            title,
+            org,
+            location: 'Vienna, Austria',
+            url: href.startsWith('http') ? href : `https://www.viennabiocenter.org${href}`,
+            deadline: deadline ? `📅 ${deadline}` : undefined
+          }, { country: 'austria' });
+        }
+      });
+    }
+  } catch (e) {
+    console.warn(`  ⚠ Vienna BioCenter scrape failed: ${e.message}`);
   }
+  await new Promise(r => setTimeout(r, 1000));
+
+  // 2. CeMM Vienna
+  try {
+    const cemmUrl = 'https://cemm.at/join-cemm/open-positions';
+    const html = await safeFetch(cemmUrl);
+    if (html) {
+      const $ = cheerio.load(html);
+      $('div.row.py-3.py-md-4, div.row.py-3').each((_, el) => {
+        const titleEl = $(el).find('.item-title, h3');
+        const title = cleanText(titleEl.text());
+        const linkEl = $(el).find('a[href]');
+        const href = linkEl.attr('href') || '';
+        const descText = cleanText($(el).find('.item-text').text());
+        const descTag = cleanText($(el).find('.item-tag').text());
+        const desc = `${descText} ${descTag}`.trim();
+        const badgeEl = $(el).find('.item-badge, span.badge');
+        let deadline = undefined;
+        if (badgeEl.length > 0) {
+          deadline = cleanText(badgeEl.text());
+        }
+
+        if (title && href) {
+          pushJob(jobs, {
+            title,
+            org: 'CeMM Vienna',
+            location: 'Vienna, Austria',
+            description: desc,
+            url: href.startsWith('http') ? href : `https://cemm.at${href}`,
+            deadline: deadline ? `📅 ${deadline}` : undefined
+          }, { country: 'austria' });
+        }
+      });
+    }
+  } catch (e) {
+    console.warn(`  ⚠ CeMM Vienna scrape failed: ${e.message}`);
+  }
+  await new Promise(r => setTimeout(r, 1000));
+
+  // 3. University of Vienna (UniVie)
+  try {
+    const univieUrl = 'https://jobs.univie.ac.at/search/?q=biology';
+    const pageJobs = await parseProtectedPage(univieUrl, { country: 'austria', location: 'Vienna' }, {
+      card: 'tr.data-row',
+      title: 'a.jobTitle-link',
+      link: 'a.jobTitle-link',
+      org: 'span.jobFacility',
+      deadline: 'span.jobDate'
+    }, { waitForSelector: 'tr.data-row', minRenderedFallback: 1 });
+
+    for (const j of pageJobs) {
+      const fac = j.org && j.org !== 'Unknown Organisation' ? j.org : '';
+      j.org = fac ? `University of Vienna - ${fac}` : 'University of Vienna';
+      j.location = 'Vienna, Austria';
+      if (j.url && !j.url.startsWith('http')) {
+        j.url = `https://jobs.univie.ac.at${j.url}`;
+      }
+      jobs.push(j);
+    }
+  } catch (e) {
+    console.warn(`  ⚠ University of Vienna scrape failed: ${e.message}`);
+  }
+  await new Promise(r => setTimeout(r, 1000));
+
+  // 4. Medical University of Vienna (MedUni Wien)
+  try {
+    const meduniUrl = 'https://www.meduniwien.ac.at/web/en/karriere/offene-stellen/';
+    const pageJobs = await parseProtectedPage(meduniUrl, { country: 'austria', location: 'Vienna' }, {
+      card: '.accordion__collapse',
+      title: 'strong',
+      link: 'a[href]'
+    }, { waitForSelector: '.accordion__collapse', minRenderedFallback: 1 });
+
+    if (pageJobs && pageJobs.length > 0) {
+      const renderedHtml = await renderPageHtml(meduniUrl, { waitForSelector: '#29980' });
+      if (renderedHtml) {
+        const $ = cheerio.load(renderedHtml);
+        const academicSection = $('#29980');
+        let currentDeadline = undefined;
+        
+        academicSection.find('h3, li').each((_, el) => {
+          const tagName = $(el).prop('tagName').toLowerCase();
+          if (tagName === 'h3') {
+            currentDeadline = cleanText($(el).text());
+          } else if (tagName === 'li') {
+            const strongTitle = $(el).find('strong').first().text();
+            const title = cleanText(strongTitle || $(el).text());
+            const fullText = cleanText($(el).text());
+            
+            let dept = '';
+            const htmlContent = $(el).html() || '';
+            const parts = htmlContent.split(/<br\s*\/?>/i);
+            if (parts.length > 1) {
+              dept = cleanText(cheerio.load(parts[1]).text());
+            }
+
+            if (title) {
+              pushJob(jobs, {
+                title,
+                org: dept ? `Medical University of Vienna - ${dept}` : 'Medical University of Vienna',
+                location: 'Vienna, Austria',
+                description: fullText,
+                url: meduniUrl,
+                deadline: currentDeadline ? `📅 ${currentDeadline}` : undefined
+              }, { country: 'austria' });
+            }
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn(`  ⚠ Medical University of Vienna scrape failed: ${e.message}`);
+  }
+
   return deduplicateRawJobs(jobs);
 }
 
@@ -2358,6 +2514,176 @@ async function scrapeAustralia() {
   return deduplicateRawJobs(jobs);
 }
 
+async function scrapeUnitedKingdom() {
+  const jobs = [];
+  const queries = ['epigenetics', 'toxicology', 'stem cell', 'circadian'];
+  
+  // 1. FindAPhD Scraper (HTML parser with Playwright fallback via parseProtectedPage)
+  for (const q of queries) {
+    const url = `https://www.findaphd.com/phds/?Keywords=${encodeURIComponent(q)}`;
+    try {
+      const defaults = { baseUrl: url, country: 'united kingdom', type: 'phd' };
+      const pageJobs = await parseProtectedPage(url, defaults, {
+        card: 'div.resultsRow, .resultsRow',
+        title: 'a[href*="/phds/project/"], a.h4.text-dark',
+        link: 'a[href*="/phds/project/"], a.h4.text-dark',
+        org: 'a.instLink, [class*="institution"], [class*="university"]',
+        description: 'div.desc, [class*="description"]',
+      }, { minRenderedFallback: 1 });
+      
+      for (const j of pageJobs) {
+        let deadline = j.deadline || '📅 Rolling';
+        const deadlineMatch = j.description ? j.description.match(/(?:Deadline|Closing date):\s*([^\n\r]+)/i) : null;
+        if (deadlineMatch) {
+          deadline = deadlineMatch[1].trim();
+        }
+        j.deadline = deadline;
+        jobs.push(j);
+      }
+    } catch (e) {
+      console.warn(`  ⚠ FindAPhD scrape failed for "${q}": ${e.message}`);
+    }
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  
+  // 2. Jobs.ac.uk Scraper (resilient supplemental source for UK vacancies)
+  for (const q of queries) {
+    const url = `https://www.jobs.ac.uk/search/?keywords=${encodeURIComponent(q)}`;
+    try {
+      const html = await safeFetch(url);
+      if (html) {
+        const $ = cheerio.load(html);
+        $('.j-search-result__result').each((_, el) => {
+          const titleLink = $(el).find('.j-search-result__text a');
+          const title = titleLink.text().trim();
+          const href = titleLink.attr('href');
+          const org = $(el).find('.j-search-result__employer').text().trim();
+          const dept = $(el).find('.j-search-result__department').text().trim();
+          const expires = $(el).find('.j-search-result__date--blue').text().trim();
+          
+          let location = 'United Kingdom';
+          $(el).find('div').each((_, divEl) => {
+            const txt = $(divEl).text();
+            if (txt.includes('Location:')) {
+              location = txt.replace('Location:', '').trim();
+            }
+          });
+          
+          let desc = $(el).find('.j-search-result__info').text().trim();
+          if (dept) desc = `${dept}. ${desc}`;
+          
+          let deadline = '📅 Rolling';
+          if (expires) {
+            deadline = expires;
+          }
+          
+          if (title && href) {
+            pushJob(jobs, {
+              title,
+              org: org || 'UK Institution',
+              country: 'united kingdom',
+              location,
+              description: desc,
+              url: href.startsWith('http') ? href : `https://www.jobs.ac.uk${href}`,
+              deadline
+            }, { type: 'phd' });
+          }
+        });
+      }
+    } catch (e) {
+      console.warn(`  ⚠ Jobs.ac.uk scrape failed for "${q}": ${e.message}`);
+    }
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  
+  return deduplicateRawJobs(jobs);
+}
+
+async function scrapeSwitzerland() {
+  const jobs = [];
+  
+  // 1. ETH Zurich Scraper (directly using Axios + Cheerio)
+  try {
+    const url = 'https://jobs.ethz.ch/';
+    const html = await safeFetch(url);
+    if (html) {
+      const $ = cheerio.load(html);
+      $('a[href*="/job/view/"]').each((_, el) => {
+        const rawText = $(el).text().replace(/\s+/g, ' ').trim();
+        const parts = rawText.split('|').map(p => p.trim());
+        const mainPart = parts[0] || '';
+        const dept = parts[1] || '';
+        
+        // Match Date (DD.MM.YYYY)
+        const dateMatch = mainPart.match(/(\d{2}\.\d{2}\.\d{4})$/);
+        const datePlaced = dateMatch ? dateMatch[1] : '';
+        let titleAndDetails = dateMatch ? mainPart.replace(datePlaced, '').trim() : mainPart;
+        
+        // Match Percentage & Location
+        const pctMatch = titleAndDetails.match(/(\d+%\s*,.*)$/);
+        let title = titleAndDetails;
+        let locationAndType = '';
+        if (pctMatch) {
+          locationAndType = pctMatch[1].trim();
+          title = titleAndDetails.replace(locationAndType, '').trim();
+        }
+        
+        if (title && title.length > 5) {
+          pushJob(jobs, {
+            title,
+            org: 'ETH Zurich',
+            country: 'switzerland',
+            location: locationAndType || 'Zurich, Switzerland',
+            description: `Department: ${dept}. Details: ${locationAndType}. Placed: ${datePlaced}.`,
+            url: `https://jobs.ethz.ch${$(el).attr('href')}`,
+          }, { type: 'phd' });
+        }
+      });
+    }
+  } catch (e) {
+    console.warn(`  ⚠ ETH Zurich scrape failed: ${e.message}`);
+  }
+
+  // 2. University of Basel (direct iframe/localized page to avoid 403 blocks)
+  try {
+    const baselUrl = 'https://jobs.unibas.ch/?lang=en';
+    const pageJobs = await parseProtectedPage(baselUrl, {
+      org: 'University of Basel', country: 'switzerland', location: 'Basel', baseUrl: 'https://jobs.unibas.ch/'
+    }, {
+      card: '.job',
+      title: 'a.job-title',
+      link: 'a.job-title',
+    }, { waitForSelector: '.job, a.job-title', minRenderedFallback: 1 });
+    
+    for (const j of pageJobs) {
+      jobs.push(j);
+    }
+  } catch (e) {
+    console.warn(`  ⚠ University of Basel scrape failed: ${e.message}`);
+  }
+  await new Promise(r => setTimeout(r, 1000));
+
+  // 3. University of Bern (crawling the English iframe directly to capture React rendering)
+  try {
+    const bernUrl = 'https://ohws.prospective.ch/public/v2/careercenter/1001892/?lang=en';
+    const pageJobs = await parseProtectedPage(bernUrl, {
+      org: 'University of Bern', country: 'switzerland', location: 'Bern', baseUrl: 'https://jobs.unibe.ch'
+    }, {
+      card: 'li.job-list-item',
+      title: 'h4',
+      link: 'a',
+    }, { waitForSelector: 'li.job-list-item, h4', minRenderedFallback: 1 });
+    
+    for (const j of pageJobs) {
+      jobs.push(j);
+    }
+  } catch (e) {
+    console.warn(`  ⚠ University of Bern scrape failed: ${e.message}`);
+  }
+
+  return deduplicateRawJobs(jobs);
+}
+
 // ─── STATE & CACHE LOADING ────────────────────────────────────────────────────
 function loadSourceState() {
   try {
@@ -2397,7 +2723,10 @@ const ALL_SCRAPERS = [
   { name: 'swedish',       fn: scrapeSwedishUniversities, forcedCountry: null, url: 'https://uu.varbi.com/en/', method: 'varbi rss + playwright' },
   { name: 'dutch',         fn: scrapeAcademicTransfer, forcedCountry: null, url: 'https://www.academictransfer.com/en/', method: 'cheerio html' },
   { name: 'germany',       fn: scrapeGermanyDAAD, forcedCountry: 'germany', url: 'https://api.daad.de/api/feeds/rss/en/phd.xml', method: 'cheerio rss' },
-  { name: 'danish',        fn: scrapeDenmark, forcedCountry: 'denmark', url: 'https://employment.ku.dk/all-vacancies/?get_rss=1', method: 'cheerio rss + json' }
+  { name: 'danish',        fn: scrapeDenmark, forcedCountry: 'denmark', url: 'https://employment.ku.dk/all-vacancies/?get_rss=1', method: 'cheerio rss + json' },
+  { name: 'uk',            fn: scrapeUnitedKingdom, forcedCountry: null, url: 'https://www.findaphd.com/', method: 'cheerio html + jobs.ac.uk' },
+  { name: 'switzerland',   fn: scrapeSwitzerland, forcedCountry: 'switzerland', url: 'https://jobs.ethz.ch/', method: 'cheerio html + playwright' },
+  { name: 'austria',       fn: scrapeAustria, forcedCountry: 'austria', url: 'https://www.viennabiocenter.org/career/open-positions/', method: 'cheerio html + playwright' }
 ];
 
 async function runScraperPipeline() {

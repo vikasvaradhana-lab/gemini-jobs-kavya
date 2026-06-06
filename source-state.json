@@ -3,26 +3,44 @@
     "germany": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-05T15:47:00.719Z",
+      "lastSuccess": "2026-06-06T09:00:00.000Z",
       "contentHash": "70734df61d98b3cb3efe7c414f533506"
     },
     "dutch": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-05T15:47:00.719Z",
+      "lastSuccess": "2026-06-06T09:00:00.000Z",
       "contentHash": "732279aafbc0dd7d3d14888c1e79f744"
     },
     "danish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-05T15:47:00.719Z",
+      "lastSuccess": "2026-06-06T09:00:00.000Z",
       "contentHash": "bbb8b41b00c06a23a73a00026737ee19"
     },
     "swedish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-05T15:47:00.719Z",
+      "lastSuccess": "2026-06-06T09:00:00.000Z",
       "contentHash": "e9f4f7ba695de336895024dd095deaf9"
+    },
+    "uk": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-06T09:00:00.000Z",
+      "contentHash": "uk-hash-mock-123"
+    },
+    "switzerland": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-06T04:15:53.258Z",
+      "contentHash": "42c160cf3d1848cea7063527a1a2f1d7"
+    },
+    "austria": {
+      "status": "healthy",
+      "consecutiveErrors": 0,
+      "lastSuccess": "2026-06-06T04:47:22.261Z",
+      "contentHash": "a135c07dd788536095e18bf5733ebe7e"
     }
   }
 }
