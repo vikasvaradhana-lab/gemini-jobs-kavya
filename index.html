@@ -993,6 +993,63 @@ body::before {
     overflow: hidden;
   }
 }
+
+/* Creator Credit Styling */
+.creator-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Outfit', sans-serif;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  white-space: nowrap;
+  background: linear-gradient(90deg, #94a3b8 0%, #38bdf8 30%, #ec4899 70%, #94a3b8 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 6s linear infinite;
+}
+.creator-credit .credit-intro {
+  font-style: italic !important;
+  font-size: 9px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  -webkit-text-fill-color: transparent;
+}
+.creator-credit .credit-name {
+  font-style: italic !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  -webkit-text-fill-color: transparent;
+}
+@keyframes shine {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.creator-credit-desktop {
+  margin-left: 20px;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.creator-credit-mobile {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .creator-credit-desktop {
+    display: none !important;
+  }
+  .creator-credit-mobile {
+    display: inline-flex !important;
+    margin-top: 2px;
+    margin-bottom: 2px;
+  }
+}
 </style>
 
 
@@ -1046,6 +1103,10 @@ body::before {
     <!-- Sidebar Eyebrow / Brand -->
     <div class="sidebar-header">
       <div class="eyebrow" style="font-size: 9px; letter-spacing: 2px; color: var(--accent); font-weight: 700; margin-bottom: 0;">AI-Curated Opportunity Dashboard</div>
+      <div class="creator-credit creator-credit-mobile">
+        <span class="credit-intro">Engineered & Maintained by</span>
+        <span class="credit-name">M Vikas Vijayan</span>
+      </div>
       <button class="sidebar-toggle-btn" id="sidebarToggle" onclick="toggleMobileSidebar()">
         <span>Show Filters &amp; Stats</span>
         <span class="toggle-arrow" style="margin-left: 6px;">▼</span>
@@ -1175,7 +1236,7 @@ body::before {
     <!-- Top Bar -->
     <header class="top-bar">
       <div class="top-bar-first-row">
-        <h1>Kavya Prakash <span>Scientific Career Map</span></h1>
+        <h1>Kavya Prakash <span>Scientific Career Map</span> <span class="creator-credit creator-credit-desktop"><span class="credit-intro">Engineered & Maintained by</span> <span class="credit-name">M Vikas Vijayan</span></span></h1>
         
         <div class="top-bar-right">
           <div class="last-updated">Last refreshed: <span id="lastUpdated">Never</span></div>

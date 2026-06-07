@@ -1350,6 +1350,8 @@ const COUNTRY_MAP = {
   'canada': 'canada', 'ca': 'canada',
   'singapore': 'singapore', 'sg': 'singapore',
   'australia': 'australia', 'au': 'australia',
+  'france': 'france', 'fr': 'france',
+  'ireland': 'ireland', 'ie': 'ireland',
   'united kingdom': 'united kingdom', 'uk': 'united kingdom', 'gb': 'united kingdom',
   'england': 'united kingdom', 'scotland': 'united kingdom', 'wales': 'united kingdom',
   'northern ireland': 'united kingdom',
@@ -1375,6 +1377,8 @@ const CITY_COUNTRY_MAP = {
   'sheffield': 'united kingdom', 'liverpool': 'united kingdom', 'newcastle': 'united kingdom',
   'nottingham': 'united kingdom', 'southampton': 'united kingdom', 'cardiff': 'united kingdom',
   'belfast': 'united kingdom', 'leicester': 'united kingdom', 'exeter': 'united kingdom',
+  'paris': 'france', 'strasbourg': 'france', 'lyon': 'france', 'marseille': 'france',
+  'dublin': 'ireland', 'galway': 'ireland', 'cork': 'ireland',
 };
 
 function resolveCountry(raw = '') {
@@ -1966,28 +1970,84 @@ async function scrapeDenmark() {
 
 async function scrapeNatureCareers() {
   const jobs = [];
-
   const queries = ['stem cell', 'epigenetics', 'toxicology', 'neuroscience'];
+  
   for (const q of queries) {
     const searchUrl = `https://www.nature.com/naturecareers/jobs/science-jobs/europe/?keywords=${encodeURIComponent(q)}`;
     const rssUrl = `${searchUrl}&rss=1`;
-    const rss = await safeFetch(rssUrl);
-    if (rss) {
-      jobs.push(...parseRssItems(rss, { org: 'Nature Careers', country: 'sweden', baseUrl: searchUrl }));
+    
+    // 1. Fetch Nature RSS (resilient to blocks)
+    try {
+      const rss = await safeFetch(rssUrl);
+      if (rss) {
+        const $ = cheerio.load(rss, { xmlMode: true });
+        $('item, entry').each((_, el) => {
+          const title = $(el).find('title').first().text().trim();
+          const org = $(el).find('author name, author, source').first().text().trim();
+          const url = $(el).find('link').first().attr('href') || $(el).find('link').first().text() || $(el).find('guid').first().text();
+          const desc = $(el).find('description, summary, content').first().text().trim();
+
+          if (!title) return;
+
+          // Attempt country resolution from description text or org
+          let country = resolveCountry(org);
+          if (!country && desc) {
+            country = resolveCountry(desc);
+          }
+
+          if (country) {
+            pushJob(jobs, {
+              title,
+              org: org || 'Nature Careers',
+              country,
+              location: country.toUpperCase(),
+              description: desc.replace(/<[^>]*>/g, ' '),
+              url,
+              deadline: '📅 Rolling'
+            }, { type: 'phd' });
+          }
+        });
+      }
+    } catch (e) {
+      console.warn(`  ⚠ Nature Careers RSS failed for "${q}": ${e.message}`);
     }
-    const html = await safeFetch(searchUrl);
-    if (html) {
-      const defaults = { baseUrl: searchUrl, org: 'Nature Careers', country: 'sweden' };
-      jobs.push(...extractEmbeddedJobs(html, defaults));
-      jobs.push(...parseHtmlCards(html, defaults, {
-        card: 'li[class*="ResultsList"], article, .c-card, li',
-        link: 'a[href*="/naturecareers/job/"], a[href*="/jobs/"]',
-        title: 'h2, h3, a',
-        org: '[class*="employer"], [class*="organization"]',
-        location: '[class*="location"]',
-        description: 'p',
-      }));
+
+    // 2. Fetch Nature HTML (supplemental cards)
+    try {
+      const html = await safeFetch(searchUrl);
+      if (html) {
+        const $ = cheerio.load(html);
+        $('li[class*="ResultsList"], article, .c-card, li').each((_, el) => {
+          const titleLink = $(el).find('h3 a, h2 a, a[href*="/naturecareers/job/"]').first();
+          const title = titleLink.text().trim();
+          const link = titleLink.attr('href') || '';
+          const org = $(el).find('[class*="employer"], [class*="organization"]').first().text().trim();
+          const locText = $(el).find('[class*="location"]').first().text().trim();
+          const desc = $(el).find('p').first().text().trim();
+
+          if (title && link) {
+            let country = resolveCountry(locText);
+            if (!country && org) country = resolveCountry(org);
+
+            if (country) {
+              pushJob(jobs, {
+                title,
+                org: org || 'Nature Careers',
+                country,
+                location: locText || country.toUpperCase(),
+                description: desc,
+                url: link.startsWith('http') ? link : `https://www.nature.com${link}`,
+                deadline: '📅 Rolling'
+              }, { type: 'phd' });
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.warn(`  ⚠ Nature Careers HTML failed for "${q}": ${e.message}`);
     }
+
+    await new Promise(r => setTimeout(r, 1000));
   }
   return deduplicateRawJobs(jobs);
 }
@@ -2234,7 +2294,7 @@ async function scrapeRestOfEurope() {
   const jobs = [];
   const sources = [
     { name: 'Max Planck Society', country: 'germany', location: 'Germany', url: 'https://www.mpg.de/jobboard?search=epigenetics+stem+cell+toxicology' },
-    { name: 'Helmholtz Association', country: 'germany', location: 'Germany', url: 'https://www.helmholtz.de/en/career/job-vacancies/?tx_solr%5Bq%5D=biology' },
+    { name: 'Helmholtz Association', country: 'germany', location: 'Germany', url: 'https://www.helmholtz.de/en/career/job-vacancies/?tx_solr%5Bq%5D=biology+epigenetics+stem+cell+toxicology+circadian' },
     { name: 'DKFZ', country: 'germany', location: 'Heidelberg', url: 'https://www.dkfz.de/en/stellenangebote/index.php' },
     { name: 'VIB', country: 'belgium', location: 'Ghent', url: 'https://vib.be/careers?filter=PhD' },
     { name: 'KU Leuven', country: 'belgium', location: 'Leuven', url: 'https://www.kuleuven.be/personeel/jobsite/en/jobs?q=biology' },
@@ -2862,39 +2922,84 @@ async function scrapeAustralia() {
   return deduplicateRawJobs(jobs);
 }
 
-async function scrapeUnitedKingdom() {
+async function scrapeFindAPhD() {
   const jobs = [];
   const queries = ['epigenetics', 'toxicology', 'stem cell', 'circadian'];
   
-  // 1. FindAPhD Scraper (HTML parser with Playwright fallback via parseProtectedPage)
   for (const q of queries) {
     const url = `https://www.findaphd.com/phds/?Keywords=${encodeURIComponent(q)}`;
     try {
-      const defaults = { baseUrl: url, country: 'united kingdom', type: 'phd' };
-      const pageJobs = await parseProtectedPage(url, defaults, {
+      const defaults = { baseUrl: url, type: 'phd' };
+      const html = await parseProtectedPage(url, defaults, {
         card: 'div.resultsRow, .resultsRow',
         title: 'a[href*="/phds/project/"], a.h4.text-dark',
         link: 'a[href*="/phds/project/"], a.h4.text-dark',
         org: 'a.instLink, [class*="institution"], [class*="university"]',
         description: 'div.desc, [class*="description"]',
       }, { minRenderedFallback: 1 });
-      
-      for (const j of pageJobs) {
-        let deadline = j.deadline || '📅 Rolling';
-        const deadlineMatch = j.description ? j.description.match(/(?:Deadline|Closing date):\s*([^\n\r]+)/i) : null;
-        if (deadlineMatch) {
-          deadline = deadlineMatch[1].trim();
+
+      const $ = cheerio.load(html || '');
+
+      $('div.resultsRow, .resultsRow').each((_, el) => {
+        const titleEl = $(el).find('a[href*="/phds/project/"], a.h4.text-dark').first();
+        const title = titleEl.text().trim();
+        const link = titleEl.attr('href') || '';
+        const org = $(el).find('a.instLink, [class*="institution"], [class*="university"]').first().text().trim();
+        const desc = $(el).find('div.desc, [class*="description"]').text().trim();
+
+        if (!title) return;
+
+        let country = null;
+
+        // Step A: Parse country from href links in the card (e.g., /phds/germany/)
+        $(el).find('a[href]').each((_, aEl) => {
+          const href = $(aEl).attr('href') || '';
+          const match = href.match(/\/phds\/([a-z\-]+)\//i);
+          if (match) {
+            const candidate = match[1].replace('-', ' ');
+            const resolved = resolveCountry(candidate);
+            if (resolved) {
+              country = resolved;
+              return false; // Break loop
+            }
+          }
+        });
+
+        // Step B: Fallback to resolving country from the organization (institution) name
+        if (!country && org) {
+          country = resolveCountry(org);
         }
-        j.deadline = deadline;
-        jobs.push(j);
-      }
+
+        if (country) {
+          let deadline = '📅 Rolling';
+          const deadlineMatch = desc ? desc.match(/(?:Deadline|Closing date):\s*([^\n\r]+)/i) : null;
+          if (deadlineMatch) {
+            deadline = deadlineMatch[1].trim();
+          }
+
+          jobs.push({
+            title,
+            org: org || 'Unknown Institution',
+            country,
+            location: country.toUpperCase(),
+            description: desc,
+            url: link.startsWith('http') ? link : `https://www.findaphd.com${link}`,
+            deadline
+          });
+        }
+      });
     } catch (e) {
       console.warn(`  ⚠ FindAPhD scrape failed for "${q}": ${e.message}`);
     }
     await new Promise(r => setTimeout(r, 1000));
   }
+  return deduplicateRawJobs(jobs);
+}
+
+async function scrapeJobsAcUK() {
+  const jobs = [];
+  const queries = ['epigenetics', 'toxicology', 'stem cell', 'circadian'];
   
-  // 2. Jobs.ac.uk Scraper (resilient supplemental source for UK vacancies)
   for (const q of queries) {
     const url = `https://www.jobs.ac.uk/search/?keywords=${encodeURIComponent(q)}`;
     try {
@@ -2943,7 +3048,6 @@ async function scrapeUnitedKingdom() {
     }
     await new Promise(r => setTimeout(r, 1000));
   }
-  
   return deduplicateRawJobs(jobs);
 }
 
@@ -3032,6 +3136,115 @@ async function scrapeSwitzerland() {
   return deduplicateRawJobs(jobs);
 }
 
+async function scrapeEPFL() {
+  const jobs = [];
+  const queries = ['phd', 'postdoc', 'stem cell', 'epigenetics', 'toxicology'];
+  
+  for (const q of queries) {
+    const url = `https://careers.epfl.ch/search/?q=${encodeURIComponent(q)}`;
+    try {
+      const pageJobs = await parseProtectedPage(
+        url,
+        { 
+          org: 'EPFL Lausanne', 
+          country: 'switzerland', 
+          location: 'Lausanne', 
+          baseUrl: 'https://careers.epfl.ch',
+          description: `EPFL position matching query: ${q}.`
+        },
+        {
+          card: 'tr.data-row',
+          title: 'a.jobTitle-link',
+          link: 'a.jobTitle-link'
+        },
+        { waitForSelector: 'tr.data-row', minRenderedFallback: 1 }
+      );
+      jobs.push(...pageJobs);
+    } catch (e) {
+      console.warn(`  ⚠ EPFL search failed for "${q}": ${e.message}`);
+    }
+  }
+  return deduplicateRawJobs(jobs);
+}
+
+async function scrapeLeibniz() {
+  const jobs = [];
+  const url = 'https://www.leibniz-gemeinschaft.de/en/careers/jobs';
+  try {
+    const html = await safeFetch(url);
+    if (html) {
+      const $ = cheerio.load(html);
+      $('ol.flow-ml li.listing-item').each((_, el) => {
+        const a = $(el).find('h4.sans-h5 a.link').first();
+        const title = a.text().trim();
+        const link = a.attr('href') || '';
+        const rawMeta = $(el).find('p.mono-i1').text().trim().replace(/\s+/g, ' ');
+        
+        if (!title || !link) return;
+        
+        const commaIdx = rawMeta.lastIndexOf(',');
+        const org = commaIdx !== -1 ? rawMeta.substring(0, commaIdx).trim() : rawMeta;
+        const loc = commaIdx !== -1 ? rawMeta.substring(commaIdx + 1).trim() : 'Germany';
+        const country = resolveCountry(loc) || 'germany';
+
+        pushJob(jobs, {
+          title,
+          org: org || 'Leibniz Association',
+          country,
+          location: loc,
+          description: `Research post at ${org}. Location: ${loc}.`,
+          url: link.startsWith('http') ? link : `https://www.leibniz-gemeinschaft.de${link}`
+        }, { type: 'phd' });
+      });
+    }
+  } catch (e) {
+    console.warn(`  ⚠ Leibniz Association scrape failed: ${e.message}`);
+  }
+  return deduplicateRawJobs(jobs);
+}
+
+async function scrapeAcademics() {
+  const jobs = [];
+  const queries = ['phd', 'postdoc', 'stem cell', 'epigenetics', 'toxicology', 'circadian'];
+  
+  for (const q of queries) {
+    const url = `https://www.academics.com/jobs?q=${encodeURIComponent(q)}`;
+    try {
+      const html = await renderPageHtml(url, { waitForSelector: 'li[id^="job-teaser-"]' });
+      if (html) {
+        const $ = cheerio.load(html);
+        $('li[id^="job-teaser-"]').each((_, el) => {
+          const a = $(el).find('a[href*="/jobs/"]').first();
+          const title = a.attr('title') || $(el).find('h2').text().trim();
+          const link = a.attr('href') || '';
+          const org = $(el).find('p.text-style-paragraph-sm').first().text().trim();
+          
+          const grid = $(el).find('div.grid, div.lg\\:flex').last();
+          const loc = grid.children().eq(0).text().trim() || 'Germany';
+          const deadlineText = grid.children().eq(2).text().trim();
+          const country = resolveCountry(loc) || 'germany';
+
+          if (title && link) {
+            pushJob(jobs, {
+              title,
+              org: org || 'Academics.com',
+              country,
+              location: loc,
+              description: `Position at ${org} matching query: ${q}.`,
+              url: link.startsWith('http') ? link : `https://www.academics.com${link}`,
+              deadline: deadlineText ? `📅 ${deadlineText}` : '📅 Rolling'
+            }, { type: 'phd' });
+          }
+        });
+      }
+    } catch (e) {
+      console.warn(`  ⚠ Academics.com failed for "${q}": ${e.message}`);
+    }
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  return deduplicateRawJobs(jobs);
+}
+
 // ─── STATE & CACHE LOADING ────────────────────────────────────────────────────
 function loadSourceState() {
   try {
@@ -3073,12 +3286,17 @@ const ALL_SCRAPERS = [
   { name: 'dutch',         fn: scrapeAcademicTransfer, forcedCountry: null, url: 'https://www.academictransfer.com/en/', method: 'cheerio html' },
   { name: 'germany',       fn: scrapeGermanyDAAD, forcedCountry: 'germany', url: 'https://api.daad.de/api/feeds/rss/en/phd.xml', method: 'cheerio rss' },
   { name: 'danish',        fn: scrapeDenmark, forcedCountry: 'denmark', url: 'https://employment.ku.dk/all-vacancies/?get_rss=1', method: 'cheerio rss + json' },
-  { name: 'uk',            fn: scrapeUnitedKingdom, forcedCountry: null, url: 'https://www.findaphd.com/', method: 'cheerio html + jobs.ac.uk' },
+  // { name: 'findaphd',      fn: scrapeFindAPhD, forcedCountry: null, url: 'https://www.findaphd.com/', method: 'cheerio html + playwright' },
+  { name: 'uk',            fn: scrapeJobsAcUK, forcedCountry: 'united kingdom', url: 'https://www.jobs.ac.uk/', method: 'cheerio html' },
+  { name: 'nature',        fn: scrapeNatureCareers, forcedCountry: null, url: 'https://www.nature.com/naturecareers/', method: 'cheerio rss + html' },
   { name: 'switzerland',   fn: scrapeSwitzerland, forcedCountry: 'switzerland', url: 'https://jobs.ethz.ch/', method: 'cheerio html + playwright' },
   { name: 'austria',       fn: scrapeAustria, forcedCountry: 'austria', url: 'https://www.viennabiocenter.org/career/open-positions/', method: 'cheerio html + playwright' },
   { name: 'norway',        fn: scrapeNorway, forcedCountry: 'norway', url: 'https://publicapi.jobbnorge.no/v1/Jobs', method: 'REST API' },
   { name: 'finland',       fn: scrapeFinland, forcedCountry: 'finland', url: 'https://jobs.helsinki.fi/', method: 'cheerio html + playwright + TalentAdore API + Varbi RSS' },
-  { name: 'industry',      fn: scrapeIndustryCareers, forcedCountry: null, url: 'https://careers.astrazeneca.com/search-jobs', method: 'playwright html + workday API' }
+  { name: 'industry',      fn: scrapeIndustryCareers, forcedCountry: null, url: 'https://careers.astrazeneca.com/search-jobs', method: 'playwright html + workday API' },
+  { name: 'epfl',          fn: scrapeEPFL, forcedCountry: 'switzerland', url: 'https://careers.epfl.ch/', method: 'playwright html + SuccessFactors' },
+  { name: 'leibniz',       fn: scrapeLeibniz, forcedCountry: 'germany', url: 'https://www.leibniz-gemeinschaft.de/en/careers/jobs', method: 'cheerio html' },
+  { name: 'academics',     fn: scrapeAcademics, forcedCountry: null, url: 'https://www.academics.com/jobs', method: 'playwright html + academics.com' }
 ];
 
 async function runScraperPipeline() {
