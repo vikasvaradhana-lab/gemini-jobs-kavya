@@ -359,8 +359,13 @@ const SENIOR_EXCLUDES = [
   'apulaisprofessori', 'maître de conférences', 'group leader', 'department head',
   'principal investigator', 'chair in', 'senior scientist', 'senior researcher',
   'senior project manager', 'head of', 'director', 'team lead', 'principal scientist',
+  'senior laboratory technician', 'senior analyst', 'senior specialist',
+  // VP / executive level
+  'vice president', 'vp ', 'associate vice president', 'executive director',
+  'chief ', 'c-suite', 'president',
   // Management exclusions
-  'group manager', 'project manager', 'business manager', 'operations manager'
+  'group manager', 'project manager', 'business manager', 'operations manager',
+  'portfolio manager', 'program director', 'strategy partner'
 ];
 
 const HARD_EXCLUDES = [
@@ -369,7 +374,19 @@ const HARD_EXCLUDES = [
   'assistant professor', 'business development manager', 'sales representative',
   'account manager', 'hr manager', 'finance manager',
   // Non-research / Business development / Part-time student jobs
-  'business development', 'student assistant', 'studenterassistent', 'studentmedhjælper', 'studenterformidler'
+  'business development', 'student assistant', 'studenterassistent', 'studentmedhjælper', 'studenterformidler',
+  // Clinical / medical roles (require MD, not relevant to Kavya)
+  'physician', 'medical doctor', 'clinical research physician', 'clinical physician',
+  // Animal care (not research — Danish/Norwegian terms included)
+  'dyrepasser', 'animal caretaker', 'animal technician', 'laboratory animal care',
+  // Pharmacovigilance / drug safety / regulatory ops (not research)
+  'safety surveillance', 'pharmacovigilance', 'drug safety officer', 'safety officer',
+  'regulatory professional', 'regulatory affairs specialist',
+  // IT / infrastructure / engineering (non-bio)
+  'security technician', 'test engineer', 'mechanical engineer', 'electrical engineer',
+  'commissioning engineer', 'automation technician', 'building management',
+  // Sales / commercial
+  'medical representative', 'sales specialist', 'account director', 'medical account'
 ];
 
 function checkExclusionReason(title, description = '') {
@@ -854,7 +871,7 @@ function scoreJobMultiDimensional(title, description, sourceName) {
   if (/life science|biolog|biomed|biochem|biotech|pharmaceutical|health|medical|research|laborator|scientist/i.test(text)) {
     boost = 5;
   }
-  const isIndustry = (sourceName === 'industry' || sourceName === 'novo');
+  const isIndustry = (sourceName === 'industry' || sourceName === 'novo' || sourceName === 'medicon');
   if (isIndustry) {
     boost += 10;
   }
@@ -902,6 +919,7 @@ function typeFromText(text) {
 // ─── TIERED DEDUPLICATION SYSTEM ─────────────────────────────────────────────
 const SOURCE_TIERS = {
   'swedish': 1, 'dutch': 1, 'danish': 1, 'embl': 1, 'novo': 1, 'industry': 1, 'norway': 1, 'finland': 1, 'austria': 1, 'switzerland': 1,
+  'medicon': 1,
   'euraxess': 2,
   'nature': 3, 'academicpos': 3, 'findaphd': 3,
   'default': 4
@@ -1149,7 +1167,7 @@ function buildJob(raw, source) {
   const score = scoreResult.score;
   // Industry sources use a slightly lower threshold (40 vs 45) since real biotech
   // job titles may use methodology keywords but not niche epigenomics/toxicology terms
-  const isIndustrySource = (source === 'industry' || source === 'novo');
+  const isIndustrySource = (source === 'industry' || source === 'novo' || source === 'medicon');
   const threshold = DEBUG_MODE ? 10 : (isIndustrySource ? 40 : MIN_SCORE_THRESHOLD);
 
   if (scoreResult.matchedMultilingual) metrics.multilingualMatches++;
@@ -1173,10 +1191,10 @@ function buildJob(raw, source) {
   // Classifications
   const roleType = classifyRoleType(raw.title, raw.description || '');
   const domain = classifyDomain(raw.title, raw.description || '');
-  const sourceType = (source === 'industry' || source === 'novo') ? 'industry' : 'academic';
+  const sourceType = (source === 'industry' || source === 'novo' || source === 'medicon') ? 'industry' : 'academic';
   
   // Clean type categorization (phd vs industry) to power toggle buttons
-  const finalType = (sourceType === 'industry' || roleType === 'industry-scientist' || roleType === 'qa-qc') ? 'industry' : 'phd';
+  const finalType = (roleType === 'phd') ? 'phd' : ((sourceType === 'industry' || roleType === 'industry-scientist' || roleType === 'qa-qc') ? 'industry' : 'phd');
 
   // Track career level counts in metrics
   if (finalType === 'phd') metrics.categories.phd++;
@@ -1199,6 +1217,7 @@ function buildJob(raw, source) {
     if (orgName === 'SciLifeLab') portal = 'SciLifeLab';
     else portal = 'Varbi (Sweden)';
   }
+  else if (source === 'medicon') portal = 'Medicon Village';
   else if (source === 'norway') portal = 'Jobbnorge (Norway)';
   else if (source === 'dutch') portal = 'AcademicTransfer (Netherlands)';
   else if (source === 'germany') portal = 'DAAD (Germany)';
@@ -1949,6 +1968,47 @@ async function scrapeFindAPhD() {
   return deduplicateRawJobs(jobs);
 }
 
+async function scrapeMediconVillage() {
+  const jobs = [];
+  const url = 'https://www.mediconvillage.se/en/open-positions/';
+  try {
+    const html = await safeFetch(url);
+    if (html) {
+      const $ = cheerio.load(html);
+      $('article.teaser-job').each((_, el) => {
+        const title = cleanText($(el).find('.teaser__title').text());
+        const link = $(el).find('a.teaser__inner').attr('href') || $(el).find('a').attr('href') || '';
+        const org = cleanText($(el).find('.teaser__text').text()) || 'Medicon Village Member';
+        
+        let deadline = '📅 Rolling';
+        $(el).find('ul.teaser__date li').each((_, li) => {
+          const text = $(li).text();
+          if (text.includes('Application deadline:')) {
+            const dateStr = cleanText(text.replace('Application deadline:', ''));
+            if (dateStr) {
+              deadline = `📅 ${dateStr}`;
+            }
+          }
+        });
+
+        if (title && link) {
+          pushJob(jobs, {
+            title,
+            org,
+            country: 'sweden',
+            location: 'Lund, Sweden',
+            url: link.startsWith('http') ? link : `https://www.mediconvillage.se${link}`,
+            deadline
+          }, { type: 'industry' });
+        }
+      });
+    }
+  } catch (e) {
+    console.warn(`  ⚠ Medicon Village scrape failed: ${e.message}`);
+  }
+  return deduplicateRawJobs(jobs);
+}
+
 async function scrapeSwedishUniversities() {
   const jobs = [];
   
@@ -1985,11 +2045,24 @@ async function scrapeSwedishUniversities() {
     const sllHtml = await safeFetch('https://www.scilifelab.se/careers/');
     if (sllHtml) {
       const $ = cheerio.load(sllHtml);
-      $('article, .position, li').each((_, el) => {
-        const title = $(el).find('h2, h3, a').first().text().trim();
-        const link  = $(el).find('a').first().attr('href') || '';
+      $('a.career-card').each((_, el) => {
+        const title = cleanText($(el).find('.career-card__title').text());
+        const link = $(el).attr('href') || '';
+        const org = cleanText($(el).find('.career-card__data span').first().text()) || 'SciLifeLab';
+        const deadlineText = cleanText($(el).find('.deadline u').text());
+        let deadline = '📅 Rolling';
+        if (deadlineText) {
+          deadline = `📅 ${deadlineText}`;
+        }
         if (title && title.length > 8) {
-          jobs.push({ title, org: 'SciLifeLab', country: 'sweden', location: 'Stockholm/Uppsala', url: link.startsWith('http') ? link : `https://www.scilifelab.se${link}` });
+          jobs.push({
+            title,
+            org,
+            country: 'sweden',
+            location: 'Stockholm/Uppsala',
+            url: link.startsWith('http') ? link : `https://www.scilifelab.se${link}`,
+            deadline
+          });
         }
       });
     }
@@ -2128,41 +2201,120 @@ async function scrapeRestOfEurope() {
 }
 
 async function scrapeNovoNordisk() {
+  // Novo Nordisk jobs are hosted on careers.novonordisk.com (SAP SuccessFactors).
+  // IMPORTANT: Direct search URLs require a session cookie set by visiting home page first.
+  // We use a single persistent Playwright context across all queries.
   const jobs = [];
-  // Novo Nordisk jobs are at job-ad pages linked via `a[href*="job-ad"]`
-  const queries = ['scientist cell culture', 'molecular biology', 'stem cell', 'toxicology', 'epigenetics'];
-  for (const q of queries) {
-    const url = `https://www.novonordisk.com/careers/find-a-job.html?searchText=${encodeURIComponent(q)}&country=Denmark`;
-    const defaults = { org: 'Novo Nordisk', country: 'denmark', location: 'Bagsværd, Denmark', baseUrl: 'https://www.novonordisk.com' };
-    const nnJobs = await parseProtectedPage(url, defaults, {
-      card: 'a[href*="job-ad"]',
-      title: 'h2, h3, [class*="title"]',
-      link: null
-    }, { waitForSelector: 'a[href*="job-ad"]' });
-    
-    // Also try extracting directly from the rendered Playwright HTML
-    const html = await renderPageHtml(url, { waitForSelector: 'a[href*="job-ad"]' }).catch(() => null);
-    if (html) {
-      const $ = require('cheerio').load(html);
-      $('a[href*="job-ad"]').each((_, el) => {
-        const href = $(el).attr('href');
-        const title = $(el).text().trim();
-        if (title && href && title.length > 8 && !isGenericNavigationLink(title)) {
+  const queries = [
+    'scientist',
+    'cell biology',
+    'molecular biology',
+    'toxicology',
+    'epigenetics',
+    'laboratory technician',
+    'research associate'
+  ];
+
+  // Denmark/Nordic location keywords to filter global (worldwide) results
+  const nordicLocations = [
+    'denmark', 'danish', 'bagsv', 'måløv', 'maalov', 'copenhagen', 'københavn',
+    'søborg', 'kalundborg', 'hillerød', 'gentofte', 'lyngby', 'allerød',
+    'sweden', 'stockholm', 'göteborg', 'gothenburg', 'malmö', 'lund'
+  ];
+
+  const seenUrls = new Set();
+
+  await acquirePlaywrightSlot();
+  let context;
+  try {
+    const browser = await getBrowser();
+    if (!browser) {
+      console.log('  ⚠ Novo Nordisk: browser unavailable');
+      return [];
+    }
+    context = await browser.newContext({
+      userAgent: USER_AGENTS[0],
+      locale: 'en-GB',
+      viewport: { width: 1366, height: 900 }
+    });
+
+    // Block images/fonts to speed up
+    const page = await context.newPage();
+    await page.route('**/*', route => {
+      const type = route.request().resourceType();
+      if (['image', 'media', 'font'].includes(type)) return route.abort();
+      return route.continue();
+    });
+
+    // 1. Visit home page first to initialize SAP SuccessFactors session cookies
+    console.log('  ↳ NN: Initializing session (home page)...');
+    await page.goto('https://careers.novonordisk.com/?locale=en_GB', {
+      waitUntil: 'networkidle', timeout: 30000
+    }).catch(() => {});
+    await page.waitForTimeout(2000);
+
+    // 2. Iterate through each keyword query
+    for (const q of queries) {
+      const url = `https://careers.novonordisk.com/search/?q=${encodeURIComponent(q)}&locale=en_GB`;
+      console.log(`  ↳ NN query: "${q}"`);
+
+      try {
+        await page.goto(url, { waitUntil: 'networkidle', timeout: 20000 });
+        await page.waitForSelector('[class*="jobTitle"] a', { timeout: 8000 }).catch(() => {});
+        await page.waitForTimeout(1500);
+
+        const html = await page.content();
+        const $ = require('cheerio').load(html);
+
+        $('[class*="jobTitle"] a').each((_, el) => {
+          const rawHref = $(el).attr('href') || '';
+          const title = $(el).text().trim();
+
+          // Skip header sort links and generic nav
+          if (!title || title.length < 8 || title === 'Job Title' || isGenericNavigationLink(title)) return;
+          if (!rawHref || !rawHref.includes('/job/')) return;
+
+          // Resolve relative hrefs to full URL (page HTML uses relative paths)
+          const href = rawHref.startsWith('http') ? rawHref : `https://careers.novonordisk.com${rawHref}`;
+          if (seenUrls.has(href)) return;
+          seenUrls.add(href);
+
+          // Extract location from URL slug: /job/[City]-[Title]/[id]/
+          const urlParts = href.split('/job/')[1] || '';
+          const locationSlug = urlParts.split('-')[0] || '';
+          let locationDecoded = '';
+          try { locationDecoded = decodeURIComponent(locationSlug).toLowerCase(); } catch(e) { locationDecoded = locationSlug.toLowerCase(); }
+
+          // Filter: only keep Nordic/Denmark locations
+          const isNordic = nordicLocations.some(loc =>
+            locationDecoded.includes(loc) || href.toLowerCase().includes(loc)
+          );
+          if (!isNordic) return;
+
           jobs.push({
             title,
             org: 'Novo Nordisk',
             country: 'denmark',
-            location: 'Bagsværd, Denmark',
-            url: href.startsWith('http') ? href : `https://www.novonordisk.com${href}`
+            location: locationSlug ? `${decodeURIComponent(locationSlug)}, Denmark` : 'Denmark',
+            url: href
           });
-        }
-      });
-    } else {
-      const filtered = nnJobs.filter(j => !isGenericNavigationLink(j.title));
-      jobs.push(...filtered);
+        });
+
+      } catch(e) {
+        console.log(`  ⚠ NN query "${q}" failed: ${e.message.slice(0, 60)}`);
+      }
+
+      await new Promise(r => setTimeout(r, 1000));
     }
-    await new Promise(r => setTimeout(r, 800));
+
+  } catch(e) {
+    console.log(`  ⚠ scrapeNovoNordisk error: ${e.message.slice(0, 80)}`);
+  } finally {
+    if (context) await context.close().catch(() => {});
+    releasePlaywrightSlot();
   }
+
+  console.log(`  ✓ Novo Nordisk: ${jobs.length} raw jobs found (before dedup)`);
   return deduplicateRawJobs(jobs);
 }
 
@@ -2222,7 +2374,10 @@ async function scrapeIndustryCareers() {
   // 1. AstraZeneca (link-based scraper)
   jobs.push(...await scrapeAstraZeneca());
 
-  // 2. Workday-based companies — use CXS JSON API (verified working endpoints only)
+  // 2. Novo Nordisk (Playwright scraper — Denmark)
+  jobs.push(...await scrapeNovoNordisk());
+
+  // 3. Workday-based companies — use CXS JSON API (verified working endpoints only)
   const workdayCompanies = [
     // Confirmed working: EMBL-style JSON API
     { tenant: 'lonza', site: 'Lonza_Careers', server: 'wd3', org: 'Lonza', country: 'switzerland', location: 'Basel' },
@@ -2862,6 +3017,7 @@ function loadPreviousJobs() {
 
 const ALL_SCRAPERS = [
   { name: 'swedish',       fn: scrapeSwedishUniversities, forcedCountry: null, url: 'https://uu.varbi.com/en/', method: 'varbi rss + playwright' },
+  { name: 'medicon',       fn: scrapeMediconVillage, forcedCountry: 'sweden', url: 'https://www.mediconvillage.se/en/open-positions/', method: 'cheerio html' },
   { name: 'dutch',         fn: scrapeAcademicTransfer, forcedCountry: null, url: 'https://www.academictransfer.com/en/', method: 'cheerio html' },
   { name: 'germany',       fn: scrapeGermanyDAAD, forcedCountry: 'germany', url: 'https://api.daad.de/api/feeds/rss/en/phd.xml', method: 'cheerio rss' },
   { name: 'danish',        fn: scrapeDenmark, forcedCountry: 'denmark', url: 'https://employment.ku.dk/all-vacancies/?get_rss=1', method: 'cheerio rss + json' },
@@ -2869,7 +3025,8 @@ const ALL_SCRAPERS = [
   { name: 'switzerland',   fn: scrapeSwitzerland, forcedCountry: 'switzerland', url: 'https://jobs.ethz.ch/', method: 'cheerio html + playwright' },
   { name: 'austria',       fn: scrapeAustria, forcedCountry: 'austria', url: 'https://www.viennabiocenter.org/career/open-positions/', method: 'cheerio html + playwright' },
   { name: 'norway',        fn: scrapeNorway, forcedCountry: 'norway', url: 'https://publicapi.jobbnorge.no/v1/Jobs', method: 'REST API' },
-  { name: 'finland',       fn: scrapeFinland, forcedCountry: 'finland', url: 'https://jobs.helsinki.fi/', method: 'cheerio html + playwright + TalentAdore API + Varbi RSS' }
+  { name: 'finland',       fn: scrapeFinland, forcedCountry: 'finland', url: 'https://jobs.helsinki.fi/', method: 'cheerio html + playwright + TalentAdore API + Varbi RSS' },
+  { name: 'industry',      fn: scrapeIndustryCareers, forcedCountry: null, url: 'https://careers.astrazeneca.com/search-jobs', method: 'playwright html + workday API' }
 ];
 
 async function runScraperPipeline() {
