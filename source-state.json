@@ -3,92 +3,92 @@
     "germany": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "23aa955a59a80b85d29517bad3cd38aa"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "d751713988987e9331980363e24189ce"
     },
     "medicon": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
       "contentHash": "76a4b0bce45ec7185abc8c03f38eef47"
     },
     "finland": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "f45a1f971a5a0d5b1507c85d03c574c7"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "2229240bf16f595b4316db837e4ad236"
     },
     "danish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "64b64c3710b80dc13b78e11b7aa14ade"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "b1dd1c483ef3f96f2c205bbc1a2dc151"
     },
     "nature": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
       "contentHash": "d751713988987e9331980363e24189ce"
     },
     "dutch": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "7e3356982bb47edd15b41e3cfabfa638"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "f562389483eb0e0b51d62793f929d21d"
     },
     "norway": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "271a7c7c9f80e9842e41baa48b7139a9"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "44ca333684db4672deaf89b6a34d9856"
     },
     "uk": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "abe29686fa57a8ada7c25ec05f904494"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "37f8f18a400a86d1e355614816d871ed"
     },
     "leibniz": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "1b51f15d7f62e24d8422daf5a42699f5"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "d751713988987e9331980363e24189ce"
     },
     "switzerland": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "d0a11cbeaccb9bf88454f4360016b35b"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "061a680756300f5fca2c4d3f9b198f1d"
     },
     "swedish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "4a80535ef9f93f930639253e7c063472"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "4b797112927a4b290bff61b3868f0786"
     },
     "austria": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "698746c03824135cba864d767e78873a"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "24391a309f6ae768bb0e28351accc317"
     },
     "epfl": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "8f583fe1e93e1849e3983a6e44f91be8"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "9d080f66834e934623f2573aa92ae514"
     },
     "academics": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
       "contentHash": "cac0ac9f2229543a1613af8a9d317118"
     },
     "industry": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-06-18T11:52:53.754Z",
-      "contentHash": "cfd407c1b36762fc1f2b620a898af320"
+      "lastSuccess": "2026-06-19T12:08:50.982Z",
+      "contentHash": "9fa50057688dddb716597d746cee1004"
     }
   }
 }
