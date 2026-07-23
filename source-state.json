@@ -3,92 +3,92 @@
     "germany": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
       "contentHash": "d751713988987e9331980363e24189ce"
     },
     "medicon": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
       "contentHash": "63f324388527662f65e2c1e56a17c347"
     },
     "finland": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "3b4c6c2d7b184b8a6fe7b3de1d3e30d6"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "da7cb2598fbf1b3c2b0f727a199f37ae"
     },
     "danish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "b8fb2aa4b77ea5a0de0a53b55b2fb34a"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "1c096879c1f0401f826ca9693f7ae80c"
     },
     "nature": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "b896279f76ea31162c5fc44eb29f6045"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "a3288245add02447c8dcbd0a0ee630af"
     },
     "dutch": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "9700e746ba86f3ac611cc14f80bbce57"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "0a5c5c06627f02f45297384f5fb0f7ec"
     },
     "norway": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "32166ed90810e64deb62f36291b47ba3"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "51fafbcf01892a80339206988aee9d05"
     },
     "uk": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "0270fd3e7266da90c9da3c012fdd9240"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "05996636637ddb2497832534fda3dc87"
     },
     "leibniz": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "ae56f2e59abd8c03a9475f653b35c8d0"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "7d2a1834fb3531b334a570beff2e09b3"
     },
     "switzerland": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "0d9abf5d531e1895006d1686d028b16d"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "60e8d7488a4dfa287defb0e084d71f76"
     },
     "swedish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "1a31370f7f837fee753831f95900e7bd"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "f7fb46eb1f3c8bbac19cbb8ca03b20e0"
     },
     "austria": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "64c9a02d639cd4dbd04c053eb64b634c"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "bcd027f861298504b14998f204474c07"
     },
     "epfl": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "8b4bcde5ba4e3e369f9ac4afc1bb4c4a"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "9b56ffee61cb2790a09caf0fc7be4dd9"
     },
     "academics": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "4a8350f474d9931d0a5c47e7c0952c49"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "bf2b8e03b9d8d6ffa81480ef0e9a3d7e"
     },
     "industry": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-07-22T10:27:05.595Z",
-      "contentHash": "dfdcca28ee4ddf2b77012ac994513213"
+      "lastSuccess": "2026-07-23T10:25:15.992Z",
+      "contentHash": "d1674f5362be65e96f26814371d63464"
     }
   }
 }
