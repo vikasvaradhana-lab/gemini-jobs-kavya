@@ -3,92 +3,92 @@
     "germany": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
       "contentHash": "d751713988987e9331980363e24189ce"
     },
     "medicon": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
       "contentHash": "24b7578c65574337aa5a3c5a60a5b132"
     },
     "finland": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
-      "contentHash": "e48e5e3a81326c9f308975ab7e122cd3"
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
+      "contentHash": "4cefc1ecc2d9bbf797b24165ed7e89a0"
     },
     "danish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
-      "contentHash": "d4651db75537c62a5bec2bddcd2d157a"
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
+      "contentHash": "f847264c0fe53e050a7342c038fe255b"
     },
     "nature": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
-      "contentHash": "0b8c32e0e0452a8bf30a46882c7e5b23"
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
+      "contentHash": "d09c3adcde12c166c25ebd51e2d5757f"
     },
     "dutch": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
       "contentHash": "dc203bc99aece357f2334d5ee1ed96ce"
     },
     "norway": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
-      "contentHash": "f090bfbfbab631976146ea83f3e8ac8d"
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
+      "contentHash": "400b7aad338c1fe177d25afc82589381"
     },
     "uk": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
       "contentHash": "266b207f88e2e0665d54b42c01f21fa0"
     },
     "leibniz": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
       "contentHash": "3cd7bce25ac30aa0a3a869296a0093f5"
     },
     "switzerland": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
       "contentHash": "e923ca5b557772a9d9e9dd192feb36d7"
     },
     "swedish": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
-      "contentHash": "1a72cbd6a626cb89ec63c5eaa2ff89dc"
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
+      "contentHash": "93ab700d74af82c7ef836186dab193f5"
     },
     "austria": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
-      "contentHash": "d312dca85f1ca93a50708b7e849c7097"
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
+      "contentHash": "dd2d32e51d0177d3bbac26e5e31f5782"
     },
     "epfl": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
-      "contentHash": "5f92cbd0d29003cf7dfd74d23eafe6e9"
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
+      "contentHash": "bd51b6fed0bbbafdc7754360c70675b3"
     },
     "academics": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
       "contentHash": "6307e3310926aceb2306e0c79c68e8a1"
     },
     "industry": {
       "status": "healthy",
       "consecutiveErrors": 0,
-      "lastSuccess": "2026-08-29T13:41:05.744Z",
-      "contentHash": "05783f40625d8c88d3b23cc38299b44e"
+      "lastSuccess": "2026-08-30T13:39:10.123Z",
+      "contentHash": "a6163dec9123b1710f8c01961c831a99"
     }
   }
 }
